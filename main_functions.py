@@ -1,10 +1,4 @@
 import helper_functions as h
-from scipy.ndimage import shift as scipy_shift
-import numpy as np
-import os
-import glob
-from astropy.io import fits
-import matplotlib.pyplot as plt
 
 # these are all of the main function which will be used:
 
