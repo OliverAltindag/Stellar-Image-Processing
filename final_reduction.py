@@ -57,10 +57,6 @@ def reduction(data_folder_path, science_images_folder):
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fits"))
     ref_filter_name = 'blue' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fits")
-    
-    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fits"))
-    ref_filter_name = 'blue' 
-    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fits")
 
     master_shifts_x = []
     master_shifts_y = []
