@@ -187,3 +187,11 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
             new_filename = "fdb_" + base_filename
             final_save_path = os.path.join(filter_subfolder_path, new_filename)
             mf.image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
+        return
+
+def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
+    '''
+    '''
+    filter_files, all_shifts = sort_and_align_files(folder_path, star_coords, bg_coords)
+    stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
+    return
