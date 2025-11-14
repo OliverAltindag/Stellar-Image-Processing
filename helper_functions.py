@@ -1,3 +1,10 @@
+import os
+import glob
+import numpy as np
+from astropy.io import fits
+import matplotlib.pyplot as plt
+from scipy.ndimage import shift as scipy_shift
+
 # Helper Function Definitons will all be defined here:
 
 def file_save(save_path, data, header = None):
@@ -5,6 +12,13 @@ def file_save(save_path, data, header = None):
     '''
     fits.writeto(save_path, data, header, overwrite = True)
     return
+
+def filelist_creator(base_path, subfolder_path):
+    '''
+    '''
+    file_path = os.path.join(base_path, subfolder_path, '*')
+    file_list = glob.glob(file_path)
+    return file_list
     
 def mediancombine(filelist):
     '''
@@ -118,9 +132,41 @@ def star_finder(box, xmin, ymin):
     y_coord = ymin + (y_sum_num / sum_I)
     return x_coord, y_coord
 
-def filelist_ceator(base_path, subfolder_path):
+def sort_and_align_files(science_folder_path, star_coords, background_coords):
     '''
     '''
-    file_path = os.path.join(base_path, subfolder_path, '*')
-    file_list = glob.glob(file_path)
-    return file_list
+    search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fits")
+    fdb_science_files = glob.glob(search_pattern, recursive=True)
+
+    filter_files = {
+        'Visual': [],
+        'Blue': [],
+        'Red': []
+    }
+
+    for path in fdb_science_files:
+        filter_name = fits.getheader(path)["FILTER"].strip()
+        if filter_name in filter_files:
+            filter_files[filter_name].append(path)
+
+    all_shifts = {}
+    for filter_name, file_list in filter_files.items():
+        current_shift_list = []
+        image_path_ref = file_list[0] # Use the first file as the reference
+        for image_path in file_list:
+            x_y_shifts = centroiding(image_path, image_path_ref, star_coords, background_coords)
+            current_shift_list.append(x_y_shifts)    
+        all_shifts[filter_name] = current_shift_list
+    return filter_files, all_shifts
+
+def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
+    '''
+    '''
+    for filter_name in filter_files.keys():
+        file_list = filter_files.get(filter_name, [])
+        shifts_list = all_shifts.get(filter_name, [])
+        save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fits')
+        x_shifts = [s[0] for s in shifts_list]
+        y_shifts = [s[1] for s in shifts_list]
+        shifting(file_list, x_shifts, y_shifts, pad_val, save_path)
+    return
