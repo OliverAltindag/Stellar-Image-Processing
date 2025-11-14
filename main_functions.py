@@ -112,3 +112,28 @@ def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
     final_median_image = np.nanmedian(stack, axis=2)
     file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
+
+
+def process_images_in_folder(base_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder):
+    '''
+    '''
+    for filter_name in filter_names:
+        filter_subfolder_path = os.path.join(base_folder_path, filter_name)
+        # Find all .fits files in the subfolder
+        raw_files = glob.glob(os.path.join(filter_subfolder_path, '*.fits'))
+        for image_path in raw_files:
+            base_filename = os.path.basename(image_path)
+            # Skip files that have already been processed
+            if "fdb_" in base_filename:
+                continue
+            new_filename = "fdb_" + base_filename
+            final_save_path = os.path.join(filter_subfolder_path, new_filename)
+            image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
+        return
+
+def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
+    '''
+    '''
+    filter_files, all_shifts = h.sort_and_align_files(folder_path, star_coords, bg_coords)
+    h.stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
+    return
