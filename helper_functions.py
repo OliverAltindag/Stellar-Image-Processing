@@ -4,7 +4,6 @@ import numpy as np
 from astropy.io import fits
 import matplotlib.pyplot as plt
 from scipy.ndimage import shift as scipy_shift
-import main_functions as mf
 
 # Helper Function Definitons will all be defined here:
 
@@ -170,28 +169,4 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
         x_shifts = [s[0] for s in shifts_list]
         y_shifts = [s[1] for s in shifts_list]
         shifting(file_list, x_shifts, y_shifts, pad_val, save_path)
-    return
-
-def process_images_in_folder(base_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder):
-    '''
-    '''
-    for filter_name in filter_names:
-        filter_subfolder_path = os.path.join(base_folder_path, filter_name)
-        # Find all .fits files in the subfolder
-        raw_files = glob.glob(os.path.join(filter_subfolder_path, '*.fits'))
-        for image_path in raw_files:
-            base_filename = os.path.basename(image_path)
-            # Skip files that have already been processed
-            if "fdb_" in base_filename:
-                continue
-            new_filename = "fdb_" + base_filename
-            final_save_path = os.path.join(filter_subfolder_path, new_filename)
-            mf.image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
-        return
-
-def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
-    '''
-    '''
-    filter_files, all_shifts = sort_and_align_files(folder_path, star_coords, bg_coords)
-    stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
     return
