@@ -90,8 +90,8 @@ def reduction(data_folder_path, science_images_folder):
     master_flats_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
     filter_names = flat_file_groups.keys()
 
-    h.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
-    h.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
+    mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
+    mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
 
     pad_val = 100 
     star_coords_main = [450, 470, 300, 320]
