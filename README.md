@@ -9,7 +9,7 @@ git clone https://github.com/OliverAltindag/Stellar-Image-Processing.git
 ```
 cd Stellar-Image-Processing
 ```
-### Virual Environment
+### Virtual Environment
 For Mac/Linux:
 ```
 python3 -m venv venv
