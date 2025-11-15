@@ -20,7 +20,7 @@ source venv/bin/activate
 
 For Windows:
 ```
-python -m venv venv
+py -m venv venv
 ```
 ```
 .\venv\Scripts\activate
