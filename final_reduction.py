@@ -51,8 +51,8 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
 def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
     '''
     '''
-    filter_files, all_shifts = h.sort_and_align_files(folder_path, star_coords, bg_coords)
-    h.stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
+    filter_files, all_shifts = sort_and_align_files(folder_path, star_coords, bg_coords)
+    stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
     return
 
 # The actual image reduction and stacking is done
@@ -96,11 +96,11 @@ def reduction(data_folder_path, science_images_folder):
     pad_val = 100 
     star_coords_main = [450, 470, 300, 320]
     bg_coords_main = [480, 500, 280, 300]
-    h.align_and_stack_folder(science_folder_path, star_coords_main, bg_coords_main, pad_val)
+    align_and_stack_folder(science_folder_path, star_coords_main, bg_coords_main, pad_val)
     
     star_coords_std = [123, 143, 205, 225]
     bg_coords_std = [150, 170, 150, 170]
-    h.align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
+    align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fits"))
     ref_filter_name = 'blue' 
