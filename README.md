@@ -4,12 +4,14 @@ Taking raw CCD stellar data, and performing pre-processing: we remove biases, pe
 
 ### Clone the repo and run for your data: 
 git clone https://github.com/OliverAltindag/Stellar-Image-Processing.git
+
 cd Stellar-Image-Processing
 
 ### Virual Environment
 For Mac/Linux:
 python3 -m venv venv
 source venv/bin/activate
+
 For Windows:
 python -m venv venv
 .\venv\Scripts\activate
