@@ -27,7 +27,7 @@ def master_dark(filelist, master_bias_path, save_path):
         normalized_sub_image = h.normalization(bias_subtracted_image, file_path)
         normalized_darks.append(normalized_sub_image)
     master_dark = h.mediancombine(normalized_darks)
-    file_save(save_path, master_dark) 
+    h.file_save(save_path, master_dark) 
     return master_dark
 
 def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
@@ -41,7 +41,7 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
         dark_subtracted_normalized.append(norm_flat_dark_subtracted)
     median_combine_image = h.mediancombine(dark_subtracted_normalized)
     master_flat = median_combine_image / np.median(median_combine_image)
-    file_save(save_path, master_flat) 
+    h.file_save(save_path, master_flat) 
     return master_flat
 
 def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path): 
@@ -53,7 +53,7 @@ def image_processing(path_image, master_bias_path, master_dark_path, master_flat
     bias_sub_science = h.bias_subtract(path_image, master_bias_path)
     d_b_subtracted = h.dark_subtract(bias_sub_science, master_dark_path, exptime)
     reduced_image = h.flat_correct(d_b_subtracted, master_flats_folder, filter_image)
-    file_save(save_path, reduced_image, header)
+    h.file_save(save_path, reduced_image, header)
     return
 
 def centroiding(image_path_science, image_path_ref, star_coords, background_coords):
@@ -110,7 +110,7 @@ def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
         shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
         stack[:,:,i] = shifted_padded_image
     final_median_image = np.nanmedian(stack, axis=2)
-    file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
+    h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
 
 
