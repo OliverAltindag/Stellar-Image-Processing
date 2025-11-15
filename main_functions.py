@@ -129,4 +129,4 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
             new_filename = "fdb_" + base_filename
             final_save_path = os.path.join(filter_subfolder_path, new_filename)
             image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
-        return
+    return
