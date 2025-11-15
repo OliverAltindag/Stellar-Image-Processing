@@ -1,6 +1,6 @@
 import final_reduction as reduction
 
 if __name__ == "__main__":
-	datafolder = "/absolute/path/to/datafolder/"
-objname = input("Object name: ")
-reduction.reduction(datafolder, objname)
+	datafolder = r"C:\Users\olive\OneDrive\Desktop\Jackson_Oliver_Nina"
+	objname = input("Object name: ")
+	reduction.reduction(datafolder, objname)
