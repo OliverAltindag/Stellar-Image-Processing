@@ -3,7 +3,6 @@ import glob
 import numpy as np
 from astropy.io import fits
 import matplotlib.pyplot as plt
-from scipy.ndimage import shift as scipy_shift
 
 # Helper Function Definitons will all be defined here:
 
