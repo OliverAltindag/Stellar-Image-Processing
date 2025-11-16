@@ -97,9 +97,9 @@ def reduction(data_folder_path, science_images_folder):
     mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
 
-    pad_val = 100 
-    star_coords_main = [450, 470, 300, 320]
-    bg_coords_main = [480, 500, 280, 300]
+    pad_val = 150 
+    star_coords_main = [1150, 1300, 3700, 3800]
+    bg_coords_main = [850, 1000, 3650, 3750]
     align_and_stack_folder(science_folder_path, star_coords_main, bg_coords_main, pad_val)
     
     star_coords_std = [123, 143, 205, 225]
