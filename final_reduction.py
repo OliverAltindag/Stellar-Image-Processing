@@ -112,7 +112,7 @@ def reduction(data_folder_path, science_images_folder):
 
 
     star_coords_main = [1250, 1450, 3800, 4000]
-    bg_coords_main = [1000, 1050, 3950, 4000]
+    bg_coords_main = [1230, 1280, 3750, 3800]
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
