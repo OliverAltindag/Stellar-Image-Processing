@@ -80,7 +80,7 @@ def normalization(data, file_path):
 def flat_correct(science_data, master_flats_folder, filter_image):
     '''
     '''
-    flat_filename = f"master_flat_{filter_image.strip()}.fits"
+    flat_filename = f"master_flat_{filter_image.strip().lower()}.fits"
     master_flat_path = os.path.join(master_flats_folder, flat_filename)
     # Get the master flat data
     master_flat_data = fits.getdata(master_flat_path)
