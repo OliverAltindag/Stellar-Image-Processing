@@ -120,7 +120,7 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
     for filter_name in filter_names:
         filter_subfolder_path = os.path.join(base_folder_path, filter_name)
         # Find all .fits files in the subfolder
-        raw_files = glob.glob(os.path.join(filter_subfolder_path, '*.fits'))
+        raw_files = glob.glob(os.path.join(filter_subfolder_path, '*.fit'))
         for image_path in raw_files:
             base_filename = os.path.basename(image_path)
             # Skip files that have already been processed
