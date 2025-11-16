@@ -35,7 +35,7 @@ def sort_and_align_files(science_folder_path, star_coords, background_coords):
             if x_y_shifts is None:
                 print(f"User aborted alignment for filter: {filter_name}. Check star/background boxes.")
                 current_shift_list = [] # Clear any shifts
-                break
+                break
             current_shift_list.append(x_y_shifts)    
         all_shifts[filter_name] = current_shift_list
     return filter_files, all_shifts
