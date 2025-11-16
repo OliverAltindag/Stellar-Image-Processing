@@ -33,8 +33,8 @@ def sort_and_align_files(science_folder_path, star_coords, background_coords):
         for image_path in file_list:
             x_y_shifts = mf.centroiding(image_path, image_path_ref, star_coords, background_coords)
             if x_y_shifts is None:
-                print(f"User aborted alignment for filter: {filter_name}. Check star/background boxes.")
-                current_shift_list = [] # Clear any shifts
+                print(f"User aborted alignment for filter: {filter_name}. Check star/background boxes.")
+                current_shift_list = [] # Clear any shifts
                 break
             current_shift_list.append(x_y_shifts)    
         all_shifts[filter_name] = current_shift_list
