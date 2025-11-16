@@ -102,8 +102,8 @@ def reduction(data_folder_path, science_images_folder):
     bg_coords_main = [850, 1000, 3650, 3750]
     align_and_stack_folder(science_folder_path, star_coords_main, bg_coords_main, pad_val)
     
-    star_coords_std = [123, 143, 205, 225]
-    bg_coords_std = [150, 170, 150, 170]
+    star_coords_std = [2650, 2900, 2050, 2250]
+    bg_coords_std = [2800, 1925, 1990, 2060]
     align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
