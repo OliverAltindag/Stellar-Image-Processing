@@ -31,7 +31,7 @@ def sort_and_align_files(science_folder_path, star_coords, background_coords):
         current_shift_list = []
         image_path_ref = file_list[0] # Use the first file as the reference
         for image_path in file_list:
-            x_y_shifts = centroiding(image_path, image_path_ref, star_coords, background_coords)
+            x_y_shifts = mf.centroiding(image_path, image_path_ref, star_coords, background_coords)
             current_shift_list.append(x_y_shifts)    
         all_shifts[filter_name] = current_shift_list
     return filter_files, all_shifts
@@ -45,7 +45,7 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
         save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fit')
         x_shifts = [s[0] for s in shifts_list]
         y_shifts = [s[1] for s in shifts_list]
-        shifting(file_list, x_shifts, y_shifts, pad_val, save_path)
+        mf.shifting(file_list, x_shifts, y_shifts, pad_val, save_path)
     return
     
 def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
