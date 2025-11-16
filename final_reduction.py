@@ -12,7 +12,7 @@ import main_functions as mf
 def sort_and_align_files(science_folder_path, star_coords, background_coords):
     '''
     '''
-    search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fits")
+    search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fit")
     fdb_science_files = glob.glob(search_pattern, recursive=True)
 
     filter_files = {
@@ -42,7 +42,7 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
     for filter_name in filter_files.keys():
         file_list = filter_files.get(filter_name, [])
         shifts_list = all_shifts.get(filter_name, [])
-        save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fits')
+        save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fit')
         x_shifts = [s[0] for s in shifts_list]
         y_shifts = [s[1] for s in shifts_list]
         shifting(file_list, x_shifts, y_shifts, pad_val, save_path)
@@ -64,16 +64,16 @@ def reduction(data_folder_path, science_images_folder):
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
 
-    bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fits'))
-    dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fits'))
-    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fits'))
-    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fits'))
-    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fits'))
+    bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fit'))
+    dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fit'))
+    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fit'))
+    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fit'))
+    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fit'))
     
-    master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fits')
+    master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fit')
     mf.master_bias(bias_files, master_bias_path)
     
-    master_dark_path = os.path.join(data_folder_path, 'calibration/darks/master_dark.fits')
+    master_dark_path = os.path.join(data_folder_path, 'calibration/darks/master_dark.fit')
     mf.master_dark(dark_files, master_bias_path, master_dark_path)
 
     master_flats_save_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
@@ -84,7 +84,7 @@ def reduction(data_folder_path, science_images_folder):
         'red': red_flat_files
     }
     for filter_name, file_list in flat_file_groups.items():
-        save_path = os.path.join(master_flats_save_folder, f'master_flat_{filter_name}.fits')
+        save_path = os.path.join(master_flats_save_folder, f'master_flat_{filter_name}.fit')
         mf.master_flat(file_list, master_bias_path, master_dark_path, save_path) 
     
     master_flats_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
@@ -102,9 +102,9 @@ def reduction(data_folder_path, science_images_folder):
     bg_coords_std = [150, 170, 150, 170]
     align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
 
-    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fits"))
+    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
     ref_filter_name = 'blue' 
-    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fits")
+    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
     master_shifts_x = []
     master_shifts_y = []
