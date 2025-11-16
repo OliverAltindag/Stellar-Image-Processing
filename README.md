@@ -12,8 +12,12 @@ cd Stellar-Image-Processing
 ### Virtual Environment
 For Mac/Linux:
 ```
-python3 -m venv venv
+
 ```
+```
+py -m venv venv
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 ```
 source venv/bin/activate
 ```
