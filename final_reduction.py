@@ -64,11 +64,11 @@ def reduction(data_folder_path, science_images_folder):
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
 
-    bias_files = h.filelist_creator(data_folder_path, 'calibration/biasframes', '*.fits')
-    dark_files = h.filelist_creator(data_folder_path, 'calibration/darks')
-    visual_flat_files = h.filelist_creator(data_folder_path, 'calibration/flats/visual', '*.fits')
-    blue_flat_files = h.filelist_creator(data_folder_path, 'calibration/flats/blue', '*.fits')
-    red_flat_files = h.filelist_creator(data_folder_path, 'calibration/flats/red', '*.fits')
+    bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fits'))
+    dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fits'))
+    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fits'))
+    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fits'))
+    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fits'))
     
     master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fits')
     mf.master_bias(bias_files, master_bias_path)
