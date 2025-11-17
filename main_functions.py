@@ -130,3 +130,43 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
             final_save_path = os.path.join(filter_subfolder_path, new_filename)
             image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
     return
+
+def cross_correlation_shifts(image_path_science, image_path_ref):
+    '''
+    '''
+
+    im1 = fits.getdata(image_path_ref)
+    im2 = fits.getdata(image_path_science) # Mapped from original science image input
+    im1_gray = im1.astype('float')
+    im2_gray = im2.astype('float')
+    im1_gray -= np.mean(im1_gray)
+    im2_gray -= np.mean(im2_gray)
+    # Calculate the cross-correlation image
+    corr_image = scipy.signal.fftconvolve(im1_gray, im2_gray[::-1,::-1], mode='same') 
+    peak_corr_index = np.argmax(corr_image)
+    corr_tuple = np.unravel_index(peak_corr_index, corr_image.shape)
+    xshift = corr_tuple[0] - corr_image.shape[0]/2.
+    yshift = corr_tuple[1] - corr_image.shape[1]/2.
+    final_shifts = [xshift, yshift]
+    print(final_shifts, "x then y") 
+    return final_shifts
+
+def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
+    '''
+    '''
+    if len(list_image_paths) != len(x_shift):
+        print("Inputs are wrong womp womp")
+        return
+    shifted_arrays = []
+    for index, filename in enumerate(list_image_paths):
+        im = fits.getdata(filename)
+        shifted_im = np.roll(np.roll(im, int(y_shift[index]), axis=1), int(x_shift[index]), axis=0)
+        shifted_arrays.append(shifted_im)
+    final_median_image = mediancombine(shifted_arrays)
+    max_x_shift = int(np.max(np.abs(x_shift)))
+    max_y_shift = int(np.max(np.abs(y_shift)))
+    if (max_x_shift > 0) & (max_y_shift > 0): 
+        final_median_image = final_median_image[max_x_shift:-max_x_shift, max_y_shift:-max_y_shift]
+    h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
+    return final_median_image
+
