@@ -11,22 +11,37 @@ import main_functions as mf
 
 def sort_and_align_files(science_folder_path, star_coords, background_coords):
     '''
+    Sorts science images by filter and gathers the list of shifts needed to align them.
+    
+    Parameters:
+    -----------
+    science_folder_path: String
+        Path to the folder with science images to be sort and find shifts for
+    
+    Returns:
+    --------
+    List
+        List of paths for images in each filter
+    List
+        List containing the shifts needed to align the images for each filter
     '''
     search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fit")
     fdb_science_files = glob.glob(search_pattern, recursive=True)
 
+    #lists to hold files from each filter
     filter_files = {
         'Visual': [],
         'Blue': [],
         'Red': []
     }
-
+    #sorts files by filter
     for path in fdb_science_files:
         filter_name = fits.getheader(path)["FILTER"].strip()
         if filter_name in filter_files:
             filter_files[filter_name].append(path)
 
     all_shifts = {}
+    #gets shifts
     for filter_name, file_list in filter_files.items():
         current_shift_list = []
         image_path_ref = file_list[0] # Use the first file as the reference
@@ -42,6 +57,18 @@ def sort_and_align_files(science_folder_path, star_coords, background_coords):
 
 def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
     '''
+    Shifts and stacks images in each filter.
+    
+    Parameters:
+    -----------
+    folder_path: String
+        Path to the folder with the files to be processed
+    filter_files: List
+        List of file paths for images in each filter
+    all_shifts: List
+        List containing the shifts needed to align the images for each filter
+    pad_val: Float
+        Value to pad the images by when shifting and stacking
     '''
     for filter_name in filter_files.keys():
         file_list = filter_files.get(filter_name, [])
@@ -54,6 +81,14 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
     
 def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
     '''
+      Shifts and stacks all images in a given folder.
+    
+    Parameters:
+    -----------
+    folder_path: String
+        Path to the folder with the files to be processed
+    pad_val: Float
+        Value to pad the images by when shifting and stacking
     '''
     filter_files, all_shifts = sort_and_align_files(folder_path, star_coords, bg_coords)
     stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
@@ -63,11 +98,19 @@ def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
 
 def reduction(data_folder_path, science_images_folder):
     '''
+     Reduces/processes all science images in a single function.
+
+    Parameters:
+    -----------
+    data_folder_path: String
+        Path to folder containing the calibration frames
+    science_images_folder: String
+        Path to the folder containing the science images to reduce
     '''
     standard_images_subfolder = "standard"
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
-
+    #gets calibration files
     bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fit'))
     dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fit'))
     visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fit'))
@@ -94,6 +137,7 @@ def reduction(data_folder_path, science_images_folder):
     master_flats_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
     filter_names = flat_file_groups.keys()
 
+    #calibrates science images 
     mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
 
@@ -110,7 +154,7 @@ def reduction(data_folder_path, science_images_folder):
     ref_filter_name = 'blue' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
-
+    #shifts and stacks
     star_coords_main = [1250, 1450, 3800, 4000]
     bg_coords_main = [1230, 1280, 3750, 3800]
     master_shifts_x = []
