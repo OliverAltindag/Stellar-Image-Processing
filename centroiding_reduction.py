@@ -122,7 +122,7 @@ def reduction(data_folder_path, science_images_folder):
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
-            shifts = mf.centroiding(stack_path, master_ref_path)
+            shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
             master_shifts_x.append(shifts[0])
             master_shifts_y.append(shifts[1])
             
