@@ -107,6 +107,8 @@ def reduction(data_folder_path, science_images_folder):
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
 
+    star_coords_main = [1250, 1450, 3800, 4000]
+    bg_coords_main = [1230, 1280, 3750, 3800]
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
@@ -116,12 +118,11 @@ def reduction(data_folder_path, science_images_folder):
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
-            shifts = mf.cross_correlation_shifts(stack_path, master_ref_path)
+            shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
             master_shifts_x.append(shifts[0])
             master_shifts_y.append(shifts[1])
             
     for i, stack_path in enumerate(files_to_align):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
-        mf.shifting_fft([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val, aligned_save_path)
     return
