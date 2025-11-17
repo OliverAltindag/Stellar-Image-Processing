@@ -2,7 +2,7 @@
 
 Taking raw CCD stellar data, and performing pre-processing: we remove biases, perform image alignment and modularize the process for reusage. The repo will also include generic graphing fucntions, and magnitude calculation. The reduction portion will need to be adjusted depending on the specific path on your computer. The code is made to work by reducing .fit fils, but can be easily change for .fits by changing the wildcards. Additionally, your science images must have an operational header, with emposure time ("EXPTIME") and fiter ("FILTER"). Your file architecture must reflect this for the code to work:
 
-
+```
 datafolder/
 ├── calibration/
 │   ├── biasframes/
@@ -19,6 +19,7 @@ datafolder/
     ├── blue/
     ├── visual/
     └── red/
+```
 
 ### Clone the repo and run for your data: 
 ```
