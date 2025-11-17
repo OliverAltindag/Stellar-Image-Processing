@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
+import scipy
 from scipy.ndimage import shift as scipy_shift
+import scipy.signal
 import os
 import glob
-import scipy.signal
 import helper_functions as h
 
 # these are all of the main function which will be used:
