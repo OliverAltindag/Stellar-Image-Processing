@@ -302,7 +302,7 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     Array
         Data array of the final aligned and stacked image
     '''
-    checks if you've got the right matching number of shifts or images
+    #checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
