@@ -151,7 +151,7 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     print(final_shifts, "x then y") 
     return final_shifts
 
-def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
+def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
     '''
     if len(list_image_paths) != len(x_shift):
