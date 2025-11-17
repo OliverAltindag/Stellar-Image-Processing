@@ -8,19 +8,56 @@ import matplotlib.pyplot as plt
 
 def file_save(save_path, data, header = None):
     '''
+    Saves data as a new fits file
+    
+    Parameters:
+    -----------
+    save_path: String
+        Path to the chosen save location
+    data: Array
+        Data array to save to new location
+    header: astropy Header [optional, default=None]
+        Header the file will be saved with. Leave as None to save the file with no header.
+        
     '''
     fits.writeto(save_path, data, header, overwrite = True)
     return
 
 def filelist_creator(base_path, subfolder_path):
     '''
+    Constructs a new file path and returns the list of files within it.
+    
+    Parameters:
+    ----------
+    base_path: String
+        Path to the root directory
+    subfolder_path: String
+        Path to the sub-directory
+        
+    Resturns:
+    ---------
+    List
+        List of the paths of the files at the created location
     '''
+    #creates new file path
     file_path = os.path.join(base_path, subfolder_path, '*')
+    #retrieves files with paths matching the created path
     file_list = glob.glob(file_path)
     return file_list
     
 def mediancombine(filelist):
     '''
+    Function that creates a median image stack of the input files.
+
+    Parameters
+    ----------
+    filelist: List
+        List of fits files to create a median stacked image from
+
+    Returns
+    -------
+    Array
+        3D Array containing the data of the median stacked image
     '''
     if isinstance(filelist[0], str):
         # Number of files within the input list
@@ -54,6 +91,19 @@ def mediancombine(filelist):
 
 def bias_subtract(filename, path_to_bias): # better to use filename here than data directly (faster)
     '''
+    The function works to subracts the master biases from a single frame.
+
+    Parameters:
+    ----------
+    filename: String
+        The path to the file to subtract the master bias frame from.
+    path_to_bias: String
+        The path to the master bias file.
+        
+    Returns:
+    -------
+    Array
+        3D array of the data of the bias subtracted image
     '''
     data = fits.getdata(filename)
     # gets master bias data
@@ -64,6 +114,21 @@ def bias_subtract(filename, path_to_bias): # better to use filename here than da
 
 def dark_subtract(data, master_dark_path, scale_multiple):
     '''
+    The function works to subracts the master darks from a single frame.
+
+    Parameters:
+    ----------
+    filename: String
+        The path to the file to subtract the master dark frame from.
+    path_to_bias: String
+        The path to the master dark file
+    scale_multiple: Float
+        Exposure time to scale the master dark frame with
+
+    Returns:
+    --------
+    Array
+        3D array containing the data of the dark subtracted image
     '''
     master_dark = fits.getdata(master_dark_path)
     dark_subtracted = data - (master_dark * scale_multiple)
@@ -71,6 +136,19 @@ def dark_subtract(data, master_dark_path, scale_multiple):
 
 def normalization(data, file_path):
     '''
+    Finds the exposure time and normalizes the given data with it.
+    
+    Parameters
+    ----------
+    data: Array
+        Array of image data 
+    file_path: String
+        Path to the file of the data
+
+    Returns:
+    --------
+    Array
+        Array of data normalized with the exposure time found in the file
     '''
     header = fits.getheader(file_path)
     exptime = header["EXPTIME"]
@@ -79,6 +157,21 @@ def normalization(data, file_path):
 
 def flat_correct(science_data, master_flats_folder, filter_image):
     '''
+    The function performs flat-field correction on a single science image. So will need to loop over them after. 
+
+    Parameters:
+    -----------
+    science_data: Array
+        The data array of the bias and dark subtracted science image to correct
+    master_flat_path: String
+        The path to the master flat file
+    filter_image: String
+        Filter used for the input image data
+    
+    Returns:
+    --------
+    Array
+        3D array containing data of the flat corrected image
     '''
     flat_filename = f"master_flat_{filter_image.strip().lower()}.fit"
     master_flat_path = os.path.join(master_flats_folder, flat_filename)
@@ -91,6 +184,27 @@ def flat_correct(science_data, master_flats_folder, filter_image):
 
 def box_maker(image_path, star_coords, background_coords):
     '''
+    Creates cutouts of a star and background patch within an image.
+    
+    Parameters:
+    -----------
+    image_path: String
+        Path to the image file
+    star_coords: List
+        List containing the minimum and maximum x and y values to use as the dimensions of the box
+    background_coords
+        List containing the minimum and maximum x and y values to use as the dimensions of the box
+
+    Returns:
+    --------
+    Array
+        The array of data from the star cutout box
+    Array
+        The array of data from the background cutout box
+    Float
+        minimum x-value of the star box
+    Float
+        minimum y value of the star box
     '''
     # gets the data
     original_data = fits.getdata(image_path)
@@ -104,6 +218,22 @@ def box_maker(image_path, star_coords, background_coords):
 
 def sigma_finder(box):
     '''
+    Finds the three sigma cutoff value to use when filtering data.
+    
+    Parameters:
+    ----------
+    box: Array
+        Data of the background cutout image.
+        
+    Returns:
+    --------
+    Float
+       Cutoff value used to filter out background values from an image
+    Float
+        Average of the values in the background patch
+    Float
+        Standard deviation of the values in the background patch
+        
     '''
     # gets the cutoff value
     avg_background = np.mean(box)
@@ -113,7 +243,23 @@ def sigma_finder(box):
 
 def star_isolator(box, cutoff, avg_background):
     '''
+    Isolates a star within an image by setting any value less than the cutoff to NaN, which removes the background data.
+
+    Parameters:
+    -----------
+    box: Array
+        Data of the cutout star image
+    cutoff: Float
+        Cutoff value to filter out the background with
+    avg_background: Float
+        Average value of the background cutout
+
+    Returns:
+    --------
+    Array
+        Array of image data after filtering out the background
     '''
+    #sets any value less than the cutoff to NaN
     star = box <= cutoff
     box -= avg_background
     box[star] = np.nan
@@ -121,12 +267,33 @@ def star_isolator(box, cutoff, avg_background):
 
 def star_finder(box, xmin, ymin):
     '''
+    Finds the coordinates of the center of a star using the centroiding method.
+    
+    Parameters:
+    -----------
+    box: Array
+        Data of the cutout star image
+    xmin: Float
+        Value of the minimum x-coordinate of the cutout box
+    ymin: Float
+        Value of the minimum y-coordinate of the cutout box
+        
+    Returns:
+    --------
+    Float
+        The x-coordinate of the centroid found in the image
+    Float
+        The y-coordinate of the centroid found in the image
     '''
+    #get image shape
     num_rows, num_cols = box.shape
     y_indices, x_indices = np.indices((num_rows, num_cols))
+    #calculates sum of star pixel values
     sum_I = np.nansum(box)
+    #weighted position sums
     x_sum_num = np.nansum(x_indices * box)
     y_sum_num = np.nansum(y_indices * box)
+    #finds coordinates of centroid
     x_coord = xmin + (x_sum_num / sum_I)
     y_coord = ymin + (y_sum_num / sum_I)
     return x_coord, y_coord
