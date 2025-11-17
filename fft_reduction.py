@@ -9,7 +9,7 @@ import main_functions as mf
 
 # Very specific helper fucntions
 
-def sort_and_align_files(science_folder_path, star_coords, background_coords):
+def sort_and_align_files(science_folder_path):
     '''
     '''
     search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fit")
@@ -31,7 +31,7 @@ def sort_and_align_files(science_folder_path, star_coords, background_coords):
         current_shift_list = []
         image_path_ref = file_list[0] # Use the first file as the reference
         for image_path in file_list:
-            x_y_shifts = mf.cross_correlation_shifts(image_path, image_path_ref, star_coords, background_coords)
+            x_y_shifts = mf.cross_correlation_shifts(image_path, image_path_ref)
             if x_y_shifts is None:
                 print(f"User aborted alignment for filter: {filter_name}. Check star/background boxes.")
                 current_shift_list = [] # Clear any shifts
@@ -52,10 +52,10 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
         mf.shifting_fft(file_list, x_shifts, y_shifts, pad_val, save_path)
     return
     
-def align_and_stack_folder(folder_path, star_coords, bg_coords, pad_val):
+def align_and_stack_folder(folder_path, pad_val):
     '''
     '''
-    filter_files, all_shifts = sort_and_align_files(folder_path, star_coords, bg_coords)
+    filter_files, all_shifts = sort_and_align_files(folder_path)
     stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
     return
 
@@ -98,19 +98,15 @@ def reduction(data_folder_path, science_images_folder):
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
 
     pad_val = 150 
-    align_and_stack_folder(science_folder_path, star_coords_main, bg_coords_main, pad_val)
+    align_and_stack_folder(science_folder_path, pad_val)
     
-    star_coords_std = [2650, 2900, 2050, 2250]
-    bg_coords_std = [2825, 2925, 1990, 2060]
-    align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
+    align_and_stack_folder(standard_folder_path, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
     ref_filter_name = 'blue' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
 
-    star_coords_main = [1250, 1450, 3800, 4000]
-    bg_coords_main = [1230, 1280, 3750, 3800]
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
@@ -120,7 +116,7 @@ def reduction(data_folder_path, science_images_folder):
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
-            shifts = mf.cross_correlation_shifts(stack_path, master_ref_path, star_coords_main, bg_coords_main)
+            shifts = mf.cross_correlation_shifts(stack_path, master_ref_path)
             master_shifts_x.append(shifts[0])
             master_shifts_y.append(shifts[1])
             
