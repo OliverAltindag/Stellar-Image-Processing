@@ -68,12 +68,12 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
     axes[1, 0].imshow(new_box)
     axes[1, 1].imshow(new_background)
     plt.show()
-    try:
-        user_choice = input("Do they looked fucked (y/n): ")
-        if user_choice.lower().strip().startswith('y'):
-            return None
-    except Exception as e:
-        pass
+    #try:
+        #user_choice = input("Do they looked fucked (y/n): ")
+        #if user_choice.lower().strip().startswith('y'):
+            #return None
+    #except Exception as e:
+        #pass
 
     three_sigma_ref, avg_background_ref, std_bckground_ref = h.sigma_finder(ref_background)
     three_sigma_new, avg_background_new, std_bckground_new  = h.sigma_finder(new_background)
