@@ -12,16 +12,44 @@ import helper_functions as h
 
 # this makes the master_bias frame
 def master_bias(filelist, save_path):
-    """
-    """
+    '''
+    Creates the master bias frame.
+
+    Paramters
+    ---------
+    filelist: List
+        List of the bias frame fits files to create the master bias from
+    save_path: String
+        Path to where the master bias file will be saved
+
+    Returns
+    -------
+    Array
+        3D array containing the data of the created master bias
+    '''
     #creates median stacked frame using helper functions
     master_bias =  h.mediancombine(filelist) 
     h.file_save(save_path, master_bias)
     return master_bias
 
-# this one makes the master dark BUT need to run it for each exptime individually at the moment
 def master_dark(filelist, master_bias_path, save_path):
     '''
+    Makes the master dark frame. 
+    NOTE: This does not sort files by filter, so only use on files with the same filter.
+
+    Parameters
+    ----------
+    filelist: List
+        List of the dark frame fits files to create the master dark from
+    master_bias: Array
+        3D array containing the data of the master bias frame
+    save_path: String
+        Path to where the master dark file will be saved
+        
+    Returns
+    -------
+    Array
+        3D array containing the data of the created master dark frame
     '''
     normalized_darks = []
     for file_path in filelist:
@@ -34,6 +62,18 @@ def master_dark(filelist, master_bias_path, save_path):
 
 def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
     '''
+    Makes the master flat frame.
+
+    Parameters
+    ----------
+    flat_files: List
+        List of the flat frame fits files to create the master flat from
+    master_bias: Array
+        3D array containing the data of the master bias frame
+    master_dark: Array
+        3D array containing the data of the master dark frame
+    save_path: String
+        Path to where the master flat file will be saved
     '''
     dark_subtracted_normalized = []
     for flat_file_path in flat_files:
@@ -48,6 +88,20 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
 
 def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path): 
     '''
+    Processes an image by correcting with the master bias, master dark, and master flat frames.
+
+    Parameters:
+    -----------
+    path_image: String
+        Path to the image to process
+    master_bias_path: String
+        Path to the master bias frame
+    master_dark_path: String
+        Path to the master dark frame
+    master_flats_folder: String
+        Path to the folder of master flats for each filter
+    save_path: String
+        Path to desired save location
     '''
     header = fits.getheader(path_image)
     exptime = header["EXPTIME"]
@@ -60,10 +114,29 @@ def image_processing(path_image, master_bias_path, master_dark_path, master_flat
 
 def centroiding(image_path_science, image_path_ref, star_coords, background_coords):
     '''
+    Finds shifts needed to align an image with the given reference image using the centroiding method.
+
+    Parameters:
+    -----------
+    image_path_science: String
+        Path to calibrated science image
+    image_path_ref: String
+        Path to reference image
+    star_coords: List
+        List of minimum and maximum x and y values to use as dimensions for cutouts of a star in the images
+    background_coords: List
+        List of minimum and maximum x and y values to use as dimensions for cutouts of a background patch in the images
+
+    Returns:
+    --------
+    List
+        List of the x and y values needed to align image with the reference
     '''
+    #uses box helper function to create cutouts
     new_box, new_background, new_xmin, new_ymin = h.box_maker(image_path_science, star_coords, background_coords)
     ref_box, ref_background, ref_xmin, ref_ymin = h.box_maker(image_path_ref, star_coords, background_coords)
 
+    #displays cutouts, giving option to terminate function if created cutout is awful
     fig, axes = plt.subplots(2, 2, figsize=(10, 10))
     axes[0, 0].imshow(ref_box)
     axes[0, 1].imshow(ref_background)
@@ -77,21 +150,46 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
     #except Exception as e:
         #pass
 
+    #finds cutoff values with sigma_finder helper function
     three_sigma_ref, avg_background_ref, std_bckground_ref = h.sigma_finder(ref_background)
     three_sigma_new, avg_background_new, std_bckground_new  = h.sigma_finder(new_background)
+    #removes background pixel values with the star_isolator helper function
     new_star_box = h.star_isolator(new_box, three_sigma_new, avg_background_new)
     ref_star_box = h.star_isolator(ref_box, three_sigma_ref, avg_background_ref)
+    #finds coordinates of the centroids in the input and reference image star cutouts
     x_coord_new, y_coord_new = h.star_finder(new_star_box, new_xmin, new_ymin)
     x_coord_ref, y_coord_ref = h.star_finder(ref_star_box, ref_xmin, ref_ymin)
+    #calculates shift needed to align image with reference
     shift_x = x_coord_ref - x_coord_new
     shift_y = y_coord_ref - y_coord_new
+    #creates list to hold shift values
     final_shifts = [shift_x, shift_y]
     print(final_shifts, "x then y")
     return final_shifts
 
 def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
+    Shifts a list of images to align them, and then stacks them together.
+
+    Parameters:
+    ----------
+    list_image_paths: List
+        List containing the file paths for the images to align
+    x_shift: List
+        List of values to shift the x-coordinates of an image by
+    y_shift: List
+        List of values to shift the y-coordinates of an image by
+    pad_val: Float
+        Value of how much padding you wish to add to each image
+    save_path: String
+        Path to the desired save location
+
+    Returns:
+    --------
+    Array
+        Data array for the final aligned and stacked image
     '''
+    #checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
@@ -99,7 +197,8 @@ def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
     # determines the final padded shape
     sample_data = fits.getdata(list_image_paths[0])
     padded_shape = np.pad(sample_data, pad_val, 'constant').shape
-    
+
+    #Pads and shifts images
     num_images = len(list_image_paths)
     stack = np.zeros((padded_shape[0], padded_shape[1], num_images), dtype=np.float32)
     for i in range(num_images):
@@ -111,6 +210,7 @@ def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
         shifted_padded_image = scipy_shift(padded_image, (y_shift[i], x_shift[i]), cval=-1)
         shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
         stack[:,:,i] = shifted_padded_image
+    #creates median stacked image 
     final_median_image = np.nanmedian(stack, axis=2)
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
@@ -118,7 +218,22 @@ def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
 
 def process_images_in_folder(base_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder):
     '''
+    Processes all images within a folder.
+    
+    Parameters:
+    ----------
+    base_folder_path: String
+        Path to folder with images you want to process
+    filter_names: List
+        List of filter names 
+    master_bias_path: String
+        Path to the master bias frame
+    master_dark_path: String
+        Path to the master dark frame
+    master_flats_folder:
+        Path to folder with master flat frames for each filter
     '''
+    
     for filter_name in filter_names:
         filter_subfolder_path = os.path.join(base_folder_path, filter_name)
         # Find all .fits files in the subfolder
@@ -135,8 +250,21 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
 
 def cross_correlation_shifts(image_path_science, image_path_ref):
     '''
-    '''
+    Finds shifts needed to align and image with a reference using the cross correlation method.
 
+    Parameters:
+    -----------
+    image_path_science: String
+        Path to processes science image
+    image_path_ref: String
+        Path to reference image
+
+    Returns:
+    --------
+    List
+        List containing the x and y values needed to align image with the reference
+    '''
+    #Get image data
     im1 = fits.getdata(image_path_ref)
     im2 = fits.getdata(image_path_science) # Mapped from original science image input
     im1_gray = im1.astype('float')
@@ -155,11 +283,32 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
 
 def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
+    Shifts a list of images using a fast fourier transform, and then stacks them together.
+    Parameters:
+    -----------
+    list_image_paths: List
+        List of paths to images you want to shift
+      x_shift: List
+        List of values to shift the x-coordinates of an image by
+    y_shift: List
+        List of values to shift the y-coordinates of an image by
+    pad_val: Float
+        Value of how much padding you wish to add to each image
+    save_path: String
+        Path to the desired save location
+        
+    Returns:
+    --------
+    Array
+        Data array of the final aligned and stacked image
     '''
+    checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
+    #list to hold shifted data
     shifted_arrays = []
+    #shifts each image in the input list
     for index, filename in enumerate(list_image_paths):
         im = fits.getdata(filename)
         shifted_im = np.roll(np.roll(im, int(y_shift[index]), axis=1), int(x_shift[index]), axis=0)
