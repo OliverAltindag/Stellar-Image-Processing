@@ -268,15 +268,20 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     min_rows = min(im1.shape[0], im2.shape[0])
     min_cols = min(im1.shape[1], im2.shape[1])
 
-    # Crop both images to the minimum size so they align 1:1
-    im1 = im1[:min_rows, :min_cols]
-    im2 = im2[:min_rows, :min_cols]
+    # This helper calculates the start indices to crop exactly from the middle, will move it later if this works
+    def crop_center(img, target_rows, target_cols):
+        current_rows, current_cols = img.shape
+        start_row = (current_rows - target_rows) // 2
+        start_col = (current_cols - target_cols) // 2
+        return img[start_row : start_row + target_rows, start_col : start_col + target_cols]
+
+    # Apply the center crop
+    im1 = crop_center(im1, min_rows, min_cols)
+    im2 = crop_center(im2, min_rows, min_cols)
     
-    # We determine which rows arent nanned up
     valid_rows_1 = ~np.isnan(im1).any(axis=1)
     valid_rows_2 = ~np.isnan(im2).any(axis=1)
     valid_mask = valid_rows_1 & valid_rows_2
-    
     im1_cut = im1[valid_mask]
     im2_cut = im2[valid_mask]
     im1_gray = im1_cut.astype('float')
@@ -291,7 +296,7 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     final_shifts = [xshift, yshift]
     print(final_shifts, "x then y") 
     return final_shifts
-
+    
 def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
     Shifts a list of images using a fast fourier transform, and then stacks them together.
