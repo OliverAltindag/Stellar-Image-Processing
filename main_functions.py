@@ -86,7 +86,7 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
     h.file_save(save_path, master_flat) 
     return master_flat
 
-def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path, removal = None): 
+def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path, crop_val = 0): 
     '''
     Processes an image by correcting with the master bias, master dark, and master flat frames.
     Then masks (sets to np.nan) a certain number of pixels in the y, as counted from the top of a ds9 image (if needed)
