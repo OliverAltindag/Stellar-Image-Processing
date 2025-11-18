@@ -265,11 +265,18 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     im1 = fits.getdata(image_path_ref)
     im2 = fits.getdata(image_path_science) 
 
-    # --- NEW: SLICING STEP ---
+    min_rows = min(im1.shape[0], im2.shape[0])
+    min_cols = min(im1.shape[1], im2.shape[1])
+
+    # Crop both images to the minimum size so they align 1:1
+    im1 = im1[:min_rows, :min_cols]
+    im2 = im2[:min_rows, :min_cols]
+    
     # We determine which rows arent nanned up
     valid_rows_1 = ~np.isnan(im1).any(axis=1)
     valid_rows_2 = ~np.isnan(im2).any(axis=1)
     valid_mask = valid_rows_1 & valid_rows_2
+    
     im1_cut = im1[valid_mask]
     im2_cut = im2[valid_mask]
     im1_gray = im1_cut.astype('float')
