@@ -86,32 +86,29 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
     h.file_save(save_path, master_flat) 
     return master_flat
 
-def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path): 
+def image_processing(path_image, master_bias_path, master_dark_path, master_flats_folder, save_path, removal = None): 
     '''
     Processes an image by correcting with the master bias, master dark, and master flat frames.
+    Then masks (sets to np.nan) a certain number of pixels in the y, as counted from the top of a ds9 image (if needed)
 
     Parameters:
-    -----------
-    path_image: String
-        Path to the image to process
-    master_bias_path: String
-        Path to the master bias frame
-    master_dark_path: String
-        Path to the master dark frame
-    master_flats_folder: String
-        Path to the folder of master flats for each filter
-    save_path: String
-        Path to desired save location
+
     '''
     header = fits.getheader(path_image)
     exptime = header["EXPTIME"]
     filter_image = header["FILTER"]
+    
     bias_sub_science = h.bias_subtract(path_image, master_bias_path)
     d_b_subtracted = h.dark_subtract(bias_sub_science, master_dark_path, exptime)
     reduced_image = h.flat_correct(d_b_subtracted, master_flats_folder, filter_image)
-    h.file_save(save_path, reduced_image, header)
-    return
 
+    # Checks if removal exists and is greater than 0
+    if removal is not None and removal > 0:
+        cut_amount = int(removal) # just incase
+        reduced_image[-cut_amount:, :] = np.nan
+    h.file_save(save_path, reduced_image, header)
+    return reduced_image
+    
 def centroiding(image_path_science, image_path_ref, star_coords, background_coords):
     '''
     Finds shifts needed to align an image with the given reference image using the centroiding method.
@@ -245,7 +242,7 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
                 continue
             new_filename = "fdb_" + base_filename
             final_save_path = os.path.join(filter_subfolder_path, new_filename)
-            image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path)
+            image_processing(image_path, master_bias_path, master_dark_path, master_flats_folder, final_save_path, 700)
     return
 
 def cross_correlation_shifts(image_path_science, image_path_ref):
