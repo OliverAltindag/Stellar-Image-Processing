@@ -153,7 +153,7 @@ def reduction(data_folder_path, science_images_folder):
     align_and_stack_folder(standard_folder_path, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
-    ref_filter_name = 'blue' 
+    ref_filter_name = 'red' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
     #creates final image
