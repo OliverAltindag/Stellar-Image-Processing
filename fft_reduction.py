@@ -158,8 +158,6 @@ def reduction(data_folder_path, science_images_folder):
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
     #creates final image
-    star_coords_main = [1250, 1450, 3800, 4000]
-    bg_coords_main = [1230, 1280, 3750, 3800]
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
