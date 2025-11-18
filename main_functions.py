@@ -103,9 +103,9 @@ def image_processing(path_image, master_bias_path, master_dark_path, master_flat
     reduced_image = h.flat_correct(d_b_subtracted, master_flats_folder, filter_image)
 
     # Checks if removal exists and is greater than 0
-    if removal is not None and removal > 0:
-        cut_amount = int(removal) # just incase
-        reduced_image[-cut_amount:, :] = np.nan
+    if crop_val > 0:
+        c = int(crop_val)
+        reduced_image = reduced_image[:-c, : ]
     h.file_save(save_path, reduced_image, header)
     return reduced_image
     
