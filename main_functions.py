@@ -286,8 +286,8 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     corr_image = scipy.signal.fftconvolve(im1_gray, im2_gray[::-1,::-1], mode='same') 
     peak_corr_index = np.argmax(corr_image)
     corr_tuple = np.unravel_index(peak_corr_index, corr_image.shape)
-    xshift = corr_tuple[0] - corr_image.shape[0]/2.
-    yshift = corr_tuple[1] - corr_image.shape[1]/2.
+    yshift = corr_tuple[0] - corr_image.shape[0]/2.
+    xshift = corr_tuple[1] - corr_image.shape[1]/2.
     final_shifts = [xshift, yshift]
     print(final_shifts, "x then y") 
     return final_shifts
