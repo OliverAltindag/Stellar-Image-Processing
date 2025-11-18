@@ -338,3 +338,20 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
         final_median_image = final_median_image[max_y_shift:-max_y_shift, max_x_shift:-max_x_shift]
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
+
+def shifting_masters(list_image_paths, x_shift, y_shift, pad_val, save_path):
+    '''
+    '''
+    # checks if you've got the right matching number of shifts or images
+    if len(list_image_paths) != len(x_shift):
+        print("Inputs are wrong womp womp")
+        return
+
+    for index, filename in enumerate(list_image_paths):
+        im = fits.getdata(filename)
+        header = fits.getheader(filename)
+
+        shifted_im = scipy_shift(im, shift=(y_shift[index], x_shift[index]), mode='constant', cval= -1)
+        shifted_im[shifted_im <= -0.99] = np.nan
+        h.file_save(save_path, shifted_im, header)
+        return shifted_im
