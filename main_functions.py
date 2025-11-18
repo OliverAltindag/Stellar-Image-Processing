@@ -313,13 +313,14 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     Array
         Data array of the final aligned and stacked image
     '''
-    #checks if you've got the right matching number of shifts or images
+    # checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
-    #list to hold shifted data
+
     shifted_arrays = []
-    #shifts each image in the input list
+
+    # shifts each image in the input list
     for index, filename in enumerate(list_image_paths):
         im = fits.getdata(filename)
         shifted_im = np.roll(np.roll(im, -1 * int(y_shift[index]), axis=0), -1 * int(x_shift[index]), axis=1)
@@ -327,8 +328,8 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     final_median_image = h.mediancombine(shifted_arrays)
     max_x_shift = int(np.max(np.abs(x_shift)))
     max_y_shift = int(np.max(np.abs(y_shift)))
+    
     if (max_x_shift > 0) & (max_y_shift > 0): 
-        final_median_image = final_median_image[max_x_shift:-max_x_shift, max_y_shift:-max_y_shift]
+        final_median_image = final_median_image[max_y_shift:-max_y_shift, max_x_shift:-max_x_shift]
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
-
