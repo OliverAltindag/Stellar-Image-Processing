@@ -261,14 +261,21 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
     List
         List containing the x and y values needed to align image with the reference
     '''
-    #Get image data
+    # Get image data
     im1 = fits.getdata(image_path_ref)
-    im2 = fits.getdata(image_path_science) # Mapped from original science image input
-    im1_gray = im1.astype('float')
-    im2_gray = im2.astype('float')
+    im2 = fits.getdata(image_path_science) 
+
+    # --- NEW: SLICING STEP ---
+    # We determine which rows arent nanned up
+    valid_rows_1 = ~np.isnan(im1).any(axis=1)
+    valid_rows_2 = ~np.isnan(im2).any(axis=1)
+    valid_mask = valid_rows_1 & valid_rows_2
+    im1_cut = im1[valid_mask]
+    im2_cut = im2[valid_mask]
+    im1_gray = im1_cut.astype('float')
+    im2_gray = im2_cut.astype('float')
     im1_gray -= np.mean(im1_gray)
     im2_gray -= np.mean(im2_gray)
-    # Calculate the cross-correlation image
     corr_image = scipy.signal.fftconvolve(im1_gray, im2_gray[::-1,::-1], mode='same') 
     peak_corr_index = np.argmax(corr_image)
     corr_tuple = np.unravel_index(peak_corr_index, corr_image.shape)
