@@ -176,7 +176,7 @@ def reduction(data_folder_path, science_images_folder):
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
         mf.shifting_fft([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val, aligned_save_path)
 
-    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
+    master_stack_paths = glob.glob(os.path.join(science_folder_path, "aligned_master_stack_*.fit"))
     ref_filter_name = 'visual' 
     master_ref_path = os.path.join(science_folder_path, f"aligned_master_stack_{ref_filter_name.lower()}.fit")
 
