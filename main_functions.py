@@ -339,7 +339,7 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
 
-def shifting_masters(list_image_paths, x_shift, y_shift, pad_val, save_path):
+def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_path):
     '''
     '''
     # checks if you've got the right matching number of shifts or images
@@ -347,11 +347,34 @@ def shifting_masters(list_image_paths, x_shift, y_shift, pad_val, save_path):
         print("Inputs are wrong womp womp")
         return
 
-    for index, filename in enumerate(list_image_paths):
-        im = fits.getdata(filename)
-        header = fits.getheader(filename)
+    ref_data = fits.getdata(ref_image_path)
+    ref_h, ref_w = ref_data.shape
 
-        shifted_im = scipy_shift(im, shift=(y_shift[index], x_shift[index]), mode='constant', cval= -1)
-        shifted_im[shifted_im <= -0.99] = np.nan
-        h.file_save(save_path, shifted_im, header)
-        return shifted_im
+    for index, filename in enumerate(list_image_paths):
+        target_data = fits.getdata(filename)
+        target_h, target_w = target_data.shape
+        
+        center_y_diff = (ref_h // 2) - (target_h // 2)
+        center_x_diff = (ref_w // 2) - (target_w // 2)
+        
+        canvas = np.full((ref_h, ref_w), np.nan, dtype=np.float32)
+        
+        c_y1 = max(0, center_y_diff)
+        c_x1 = max(0, center_x_diff)
+        c_y2 = min(ref_h, center_y_diff + target_h)
+        c_x2 = min(ref_w, center_x_diff + target_w)
+        
+        t_y1 = max(0, -center_y_diff)
+        t_x1 = max(0, -center_x_diff)
+        t_y2 = min(target_h, t_y1 + (c_y2 - c_y1))
+        t_x2 = min(target_w, t_x1 + (c_x2 - c_x1))
+        
+        # Paste the valid data onto the canvas
+        canvas[c_y1:c_y2, c_x1:c_x2] = target_data[t_y1:t_y2, t_x1:t_x2]
+        
+        # Move the image to align the stars, filling the new empty space with NaNs
+        final_image = scipy_shift(canvas, shift=(y_shift[index], x_shift[index]), mode='constant', cval= -1)
+        final_image[final_image <= -0.99] = np.nan
+    
+        h.file_save(save_path, final_image, fits.getheader(ref_image_path))
+        return final_image
