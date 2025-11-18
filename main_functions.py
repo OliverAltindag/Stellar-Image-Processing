@@ -322,7 +322,7 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     #shifts each image in the input list
     for index, filename in enumerate(list_image_paths):
         im = fits.getdata(filename)
-        shifted_im = np.roll(np.roll(im, int(y_shift[index]), axis=0), int(x_shift[index]), axis=1)
+        shifted_im = np.roll(np.roll(im, -1 * int(y_shift[index]), axis=0), -1 * int(x_shift[index]), axis=1)
         shifted_arrays.append(shifted_im)
     final_median_image = h.mediancombine(shifted_arrays)
     max_x_shift = int(np.max(np.abs(x_shift)))
