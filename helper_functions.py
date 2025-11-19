@@ -107,6 +107,7 @@ def bias_subtract(filename, path_to_bias):
     Array
         3D array of the data of the bias subtracted image
     '''
+    # gets image data
     data = fits.getdata(filename)
     # gets master bias data
     master = fits.getdata(path_to_bias)
@@ -116,12 +117,13 @@ def bias_subtract(filename, path_to_bias):
 
 def dark_subtract(data, master_dark_path, scale_multiple):
     '''
-    The function works to subracts the master darks from a single frame.
+    The function works to subracts the master darks from a single frame. 
+    It has an added input so it scales the normalized master bias frame depending.
 
     Parameters:
     ----------
-    filename: String
-        The path to the file to subtract the master dark frame from.
+    filename: Array
+        The raw image data which will be subtracted, in array form.
     path_to_bias: String
         The path to the master dark file
     scale_multiple: Float
@@ -132,7 +134,9 @@ def dark_subtract(data, master_dark_path, scale_multiple):
     Array
         3D array containing the data of the dark subtracted image
     '''
+    # master dark data
     master_dark = fits.getdata(master_dark_path)
+    # performs the subtract here, with the scalar multiple.
     dark_subtracted = data - (master_dark * scale_multiple)
     return dark_subtracted
 
@@ -152,8 +156,10 @@ def normalization(data, file_path):
     Array
         Array of data normalized with the exposure time found in the file
     '''
+    # gets the exposure time of the file
     header = fits.getheader(file_path)
     exptime = header["EXPTIME"]
+    # normalizes the data here
     normalized = data / exptime
     return normalized
 
@@ -175,18 +181,20 @@ def flat_correct(science_data, master_flats_folder, filter_image):
     Array
         3D array containing data of the flat corrected image
     '''
+    # adaptive depending on the input filter, and gets the path
     flat_filename = f"master_flat_{filter_image.strip().lower()}.fit"
     master_flat_path = os.path.join(master_flats_folder, flat_filename)
     # Get the master flat data
     master_flat_data = fits.getdata(master_flat_path)
     master_flat_data[master_flat_data <= 0] = np.nan # if not there this did not work properly and would be an error :(
-    # Divide the science image by the master flat
+    # Divide the science image by the master flat, known as flat-fielding
     flat_corrected = science_data / master_flat_data
     return flat_corrected
 
 def box_maker(image_path, star_coords, background_coords):
     '''
-    Creates cutouts of a star and background patch within an image.
+    Creates cutouts of a star and background patch within an image. 
+    Used in centroiding to make the star boxes and background boxes.
     
     Parameters:
     -----------
@@ -208,12 +216,13 @@ def box_maker(image_path, star_coords, background_coords):
     Float
         minimum y value of the star box
     '''
-    # gets the data
+    # gets the data and makes a copy to avoid errors later on
     original_data = fits.getdata(image_path)
-    image_data = original_data.copy()
+    image_data = original_data.copy() 
+    # unpacks the coordinates
     star_xmin, star_xmax, star_ymin, star_ymax = star_coords[0], star_coords[1], star_coords[2], star_coords[3]
     bg_xmin, bg_xmax, bg_ymin, bg_ymax = background_coords[0], background_coords[1], background_coords[2], background_coords[3]
-    # makes the boxes
+    # makes the boxes with the above defined numbers
     star_box = image_data[int(star_ymin):int(star_ymax), int(star_xmin):int(star_xmax)]
     background_box = image_data[int(bg_ymin):int(bg_ymax), int(bg_xmin):int(bg_xmax)]
     return star_box, background_box, star_xmin, star_ymin
