@@ -123,7 +123,6 @@ def image_processing(path_image, master_bias_path, master_dark_path, master_flat
     ----------
     reduced_image: Array
         The array of the reduced image data, which has been saved.
-
     '''
     # gets the filter for the image
     header = fits.getheader(path_image)
@@ -198,7 +197,7 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
 
 def process_images_in_folder(base_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder):
     '''
-    Processes all images within a folder.
+    Processes all images within a folder. This will be done per science object.
     
     Parameters:
     ----------
@@ -212,6 +211,10 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
         Path to the master dark frame
     master_flats_folder:
         Path to folder with master flat frames for each filter
+        
+    Returns:
+    ----------
+        None  
     '''
     
     for filter_name in filter_names:
@@ -241,39 +244,37 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
 
     Returns:
     --------
-    List
+    final_shifts: List
         List containing the x and y values needed to align image with the reference
     '''
     # Get image data
     im1 = fits.getdata(image_path_ref)
     im2 = fits.getdata(image_path_science) 
-
+    # obtains the minimum shape amongst them
     min_rows = min(im1.shape[0], im2.shape[0])
     min_cols = min(im1.shape[1], im2.shape[1])
-
-    # This helper calculates the start indices to crop exactly from the middle, will move it later if this works
-    def crop_center(img, target_rows, target_cols):
-        current_rows, current_cols = img.shape
-        start_row = (current_rows - target_rows) // 2
-        start_col = (current_cols - target_cols) // 2
-        return img[start_row : start_row + target_rows, start_col : start_col + target_cols]
-
     # Apply the center crop
-    im1 = crop_center(im1, min_rows, min_cols)
-    im2 = crop_center(im2, min_rows, min_cols)
-    
+    im1 = h.crop_center(im1, min_rows, min_cols)
+    im2 = h.crop_center(im2, min_rows, min_cols)
+    # finds the bad rows and removes it from both images
     valid_rows_1 = ~np.isnan(im1).any(axis=1)
     valid_rows_2 = ~np.isnan(im2).any(axis=1)
     valid_mask = valid_rows_1 & valid_rows_2
     im1_cut = im1[valid_mask]
     im2_cut = im2[valid_mask]
+    # removes the background from the remaining rows
     im1_gray = im1_cut.astype('float')
     im2_gray = im2_cut.astype('float')
     im1_gray -= np.mean(im1_gray)
     im2_gray -= np.mean(im2_gray)
+    # calculates the cross correlation bewteen the two images
     corr_image = scipy.signal.fftconvolve(im1_gray, im2_gray[::-1,::-1], mode='same') 
+    # the best correlation is defined below
     peak_corr_index = np.argmax(corr_image)
     corr_tuple = np.unravel_index(peak_corr_index, corr_image.shape)
+    # the shifts to make
+    # NOTE: lab06 had a double negative error, which made the final answer correct but the code 
+    # wrong. The logic was just minorly refined here
     yshift = corr_tuple[0] - corr_image.shape[0]/2.
     xshift = corr_tuple[1] - corr_image.shape[1]/2.
     final_shifts = [xshift, yshift]
@@ -283,6 +284,7 @@ def cross_correlation_shifts(image_path_science, image_path_ref):
 def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
     Shifts a list of images using a fast fourier transform, and then stacks them together.
+    This code also median combines them at the end.
     Parameters:
     -----------
     list_image_paths: List
@@ -298,72 +300,32 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
         
     Returns:
     --------
-    Array
-        Data array of the final aligned and stacked image
+    final_median_image: Array
+        Data array of the final aligned and stacked image. It is also trimmed.
     '''
     # checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
-
+        
+    # initializes an array of the shifted arrays
     shifted_arrays = []
-
     # shifts each image in the input list
     for index, filename in enumerate(list_image_paths):
         im = fits.getdata(filename)
+        # uses np.roll so only whole number values can be entered
         shifted_im = np.roll(np.roll(im, int(y_shift[index]), axis=0), int(x_shift[index]), axis=1)
         shifted_arrays.append(shifted_im)
+    # median combines them to make the master image for each filter
     final_median_image = h.mediancombine(shifted_arrays)
+    # finds the maximum shifts performed to trim the image
     max_x_shift = int(np.max(np.abs(x_shift)))
     max_y_shift = int(np.max(np.abs(y_shift)))
-    
+    # here it saves the trimmed image
     if (max_x_shift > 0) & (max_y_shift > 0): 
         final_median_image = final_median_image[max_y_shift:-max_y_shift, max_x_shift:-max_x_shift]
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
-
-def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_path):
-    '''
-    '''
-    if len(list_image_paths) != len(x_shift):
-        print("Inputs are wrong womp womp")
-        return
-
-    ref_data = fits.getdata(ref_image_path)
-    ref_h, ref_w = ref_data.shape
-    ref_header = fits.getheader(ref_image_path)
-
-    for index, filename in enumerate(list_image_paths):
-        target_data = fits.getdata(filename)
-        t_h, t_w = target_data.shape
-        if t_h < ref_h:
-            diff = ref_h - t_h
-            pad_top = diff // 2
-            pad_bottom = diff - pad_top
-            target_data = np.pad(target_data, ((pad_top, pad_bottom), (0, 0)), 
-                                 mode='constant', constant_values=np.nan)
-        elif t_h > ref_h:
-            diff = t_h - ref_h
-            start_crop = diff // 2
-            target_data = target_data[start_crop : start_crop + ref_h, :]
-        # Re-check shape
-        curr_h, curr_w = target_data.shape
-        if curr_w < ref_w:
-            diff = ref_w - curr_w
-            pad_left = diff // 2
-            pad_right = diff - pad_left
-            target_data = np.pad(target_data, ((0, 0), (pad_left, pad_right)), 
-                                 mode='constant', constant_values=np.nan)
-        elif curr_w > ref_w:
-            diff = curr_w - ref_w
-            start_crop = diff // 2
-            target_data = target_data[:, start_crop : start_crop + ref_w]
-        shift_y_int = int(y_shift[index])
-        shift_x_int = int(x_shift[index])
-        shifted_image = np.roll(target_data, shift_y_int, axis=0)
-        shifted_image = np.roll(shifted_image, shift_x_int, axis=1)
-        h.file_save(save_path, shifted_image, ref_header)
-        return shifted_image
 
 def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
