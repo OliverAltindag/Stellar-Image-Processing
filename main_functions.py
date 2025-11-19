@@ -105,20 +105,39 @@ def image_processing(path_image, master_bias_path, master_dark_path, master_flat
     Then masks (sets to np.nan) a certain number of pixels in the y, as counted from the top of a ds9 image (if needed)
 
     Parameters:
+    ----------
+    path_image: String
+        The path to the image we are processing
+    master_bias_path: String
+        The path to the master bias frame
+    master_dark_path: String
+        The path to the master dark frame
+    master_flats_folder: String
+        Path to where the master flat files will be saved
+    save_path: String
+        The path where the data should be saved later on
+    crop_val: Integer
+        A value to cut the top of the image off due to an unwanted artifact
+
+    Returns:
+    ----------
+    reduced_image: Array
+        The array of the reduced image data, which has been saved.
 
     '''
+    # gets the filter for the image
     header = fits.getheader(path_image)
     exptime = header["EXPTIME"]
     filter_image = header["FILTER"]
-    
+    # performs the processsing, using helpers
     bias_sub_science = h.bias_subtract(path_image, master_bias_path)
     d_b_subtracted = h.dark_subtract(bias_sub_science, master_dark_path, exptime)
     reduced_image = h.flat_correct(d_b_subtracted, master_flats_folder, filter_image)
-
     # Checks if removal exists and is greater than 0
     if crop_val > 0:
         c = int(crop_val)
         reduced_image = reduced_image[:-c, : ]
+    # saves the files, using helpers
     h.file_save(save_path, reduced_image, header)
     return reduced_image
     
@@ -142,7 +161,7 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
     List
         List of the x and y values needed to align image with the reference
     '''
-    #uses box helper function to create cutouts
+    # uses box helper function to create cutouts
     new_box, new_background, new_xmin, new_ymin = h.box_maker(image_path_science, star_coords, background_coords)
     ref_box, ref_background, ref_xmin, ref_ymin = h.box_maker(image_path_ref, star_coords, background_coords)
 
@@ -153,13 +172,13 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
     axes[1, 0].imshow(new_box)
     axes[1, 1].imshow(new_background)
     plt.show()
+    # because of the image quantity and cherry-picked coordinates, this was removed for efficiency
     #try:
         #user_choice = input("Do they looked fucked (y/n): ")
         #if user_choice.lower().strip().startswith('y'):
             #return None
     #except Exception as e:
         #pass
-
     #finds cutoff values with sigma_finder helper function
     three_sigma_ref, avg_background_ref, std_bckground_ref = h.sigma_finder(ref_background)
     three_sigma_new, avg_background_new, std_bckground_new  = h.sigma_finder(new_background)
