@@ -209,7 +209,5 @@ def reduction(data_folder_path, science_images_folder):
     
     # Apply shifts to align all images
     for i, stack_path in enumerate(files_to_align):
-        base_name = os.path.basename(stack_path)
-        aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
-        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val, aligned_save_path)
+        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
     return
