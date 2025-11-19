@@ -147,7 +147,9 @@ def reduction(data_folder_path, science_images_folder):
     pad_val = 150 
     align_and_stack_folder(science_folder_path, pad_val)
     align_and_stack_folder(standard_folder_path, pad_val)
-
+    
+    
+    # super messy but will clean it all up once it works fully
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
     min_height = float('inf')
     min_width = float('inf')
@@ -157,6 +159,9 @@ def reduction(data_folder_path, science_images_folder):
         min_height = min(min_height, height)
         min_width = min(min_width, width)
     print(f"Adaptive trimming to: {min_width} x {min_height}") # bc it wont work if not and ive done a ton of testing
+    
+    # trimmed versions witha  new name, bc I cant get it to work otherwise
+    trimmed_stack_paths = []
     for stack_path in master_stack_paths:
         data = fits.getdata(stack_path)
         header = fits.getheader(stack_path)
@@ -168,9 +173,15 @@ def reduction(data_folder_path, science_images_folder):
         cropped_data = data[start_y:end_y, start_x:end_x]
         header['NAXIS1'] = cropped_data.shape[1]  # Update width
         header['NAXIS2'] = cropped_data.shape[0]  # Update height
-        h.file_save(stack_path, cropped_data, header)
-    master_stack_paths.sort()  # Sort to ensure consistent reference
-    master_ref_path = master_stack_paths[0]  # SAME REFERENCE FOR ALL ALIGNMENTS
+        base_name = os.path.basename(stack_path)
+        trimmed_name = base_name.replace("master_stack_", "trimmed_master_stack_")
+        trimmed_path = os.path.join(os.path.dirname(stack_path), trimmed_name)
+        h.file_save(trimmed_path, cropped_data, header)
+        trimmed_stack_paths.append(trimmed_path)  # STOER NEW PATHS
+    
+    # use the timrmed ones
+    trimmed_stack_paths.sort()  # Sort to ensure consistent reference
+    master_ref_path = trimmed_stack_paths[0]  
 
     pad_val = 150
     star_coords_main = [1270, 1320, 2750, 2890]  
@@ -179,14 +190,14 @@ def reduction(data_folder_path, science_images_folder):
     master_shifts_y = []
     files_to_align = []
 
-    for stack_path in master_stack_paths:
+    for stack_path in trimmed_stack_paths:  
         files_to_align.append(stack_path)
         if stack_path == master_ref_path:
             # Reference image gets zero shift (SAME REFERENCE STAR FOR ALL)
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
-            # All other images aligned to SAME REFERENCE STAR
+            # All other images aligned
             shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
             if shifts is not None:
                 master_shifts_x.append(shifts[0])
@@ -196,7 +207,7 @@ def reduction(data_folder_path, science_images_folder):
                 master_shifts_x.append(0.0)
                 master_shifts_y.append(0.0)
     
-    # Apply shifts to align all images to SAME REFERENCE
+    # Apply shifts to align all images
     for i, stack_path in enumerate(files_to_align):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
