@@ -382,7 +382,7 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
         h.file_save(save_path, shifted_image, ref_header)
         return shifted_image
 
-def shifting(list_image_paths, x_shift, y_shift, pad_val, save_path):
+def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
     Shifts a list of images to align them, and then stacks them together.
 
