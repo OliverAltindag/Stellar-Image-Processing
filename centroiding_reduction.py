@@ -154,10 +154,6 @@ def reduction(data_folder_path, science_images_folder):
     ref_filter_name = 'visual' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
-    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
-    ref_filter_name = 'visual' 
-    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
-
     #shifts and stacks
     star_coords_main = [1250, 1450, 3800, 4000] # these do not work, cant find ones to same my life
     bg_coords_main = [1230, 1280, 3750, 3800]
