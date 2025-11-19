@@ -188,11 +188,13 @@ def reduction(data_folder_path, science_images_folder):
         min_width = min(min_width, width)
     print(f"Adaptive trimming to: {min_width} x {min_height}") # bc it wont work if not and ive done a ton of testing
     
-    # trimmed versions witha  new name, bc I cant get it to work otherwise
+    # trimmed versions, this now makes the alignment step more accurate with the padding
     trimmed_stack_paths = []
     for stack_path in master_stack_paths:
+        # gets the data and the header
         data = fits.getdata(stack_path)
         header = fits.getheader(stack_path)
+        # trims the image, keeps the central values to keep image integrity
         current_height, current_width = data.shape
         start_y = (current_height - min_height) // 2
         end_y = start_y + min_height
@@ -204,8 +206,9 @@ def reduction(data_folder_path, science_images_folder):
         base_name = os.path.basename(stack_path)
         trimmed_name = base_name.replace("master_stack_", "trimmed_master_stack_")
         trimmed_path = os.path.join(os.path.dirname(stack_path), trimmed_name)
+        # saves the data to be used in the future
         h.file_save(trimmed_path, cropped_data, header)
-        trimmed_stack_paths.append(trimmed_path)  # STOER NEW PATHS
+        trimmed_stack_paths.append(trimmed_path)
     
     # use the timrmed ones
     trimmed_stack_paths.sort()  # Sort to ensure consistent reference
