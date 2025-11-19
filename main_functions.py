@@ -364,10 +364,9 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
             diff = t_h - ref_h
             start_crop = diff // 2
             target_data = target_data[start_crop : start_crop + ref_h, :]
-        # Re-check shape (target_data might have changed in Step 1)
+        # Re-check shape
         curr_h, curr_w = target_data.shape
         if curr_w < ref_w:
-            # Target is NARROWER -> Pad Left/Right
             diff = ref_w - curr_w
             pad_left = diff // 2
             pad_right = diff - pad_left
