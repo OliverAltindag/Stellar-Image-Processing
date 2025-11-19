@@ -115,14 +115,12 @@ def reduction(data_folder_path, science_images_folder):
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
 
-    #collects calibration frame files
     bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fit'))
     dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fit'))
     visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fit'))
     blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fit'))
     red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fit'))
-    
-    #creates master calibration frames
+
     master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fit')
     mf.master_bias(bias_files, master_bias_path)
     
@@ -143,11 +141,9 @@ def reduction(data_folder_path, science_images_folder):
     master_flats_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
     filter_names = flat_file_groups.keys()
 
-    #calibrates images in each filter
     mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
 
-    #shifts and stacks images
     pad_val = 150 
     align_and_stack_folder(science_folder_path, pad_val)
     align_and_stack_folder(standard_folder_path, pad_val)
@@ -156,14 +152,11 @@ def reduction(data_folder_path, science_images_folder):
     ref_filter_name = 'red' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
-    master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
-    ref_filter_name = 'red' 
-    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
-
-    #creates final image
+    # Determine shifts between master stacks
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
+    
     for stack_path in master_stack_paths:
         files_to_align.append(stack_path)
         if stack_path == master_ref_path:
@@ -171,6 +164,7 @@ def reduction(data_folder_path, science_images_folder):
             master_shifts_y.append(0.0)
         else:
             shifts = mf.cross_correlation_shifts(stack_path, master_ref_path)
+            # Use positive shifts because shifting_masters now uses np.roll (same as shifting_fft)
             master_shifts_x.append(shifts[0])
             master_shifts_y.append(shifts[1])
             
@@ -178,4 +172,5 @@ def reduction(data_folder_path, science_images_folder):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
         mf.shifting_masters([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], master_ref_path, aligned_save_path)
+        
     return
