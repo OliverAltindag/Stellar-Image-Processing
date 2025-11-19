@@ -23,7 +23,7 @@ def master_bias(filelist, save_path):
 
     Returns
     -------
-    Array
+    master_bias: Array
         3D array containing the data of the created master bias
     '''
     #creates median stacked frame using helper functions
@@ -48,7 +48,7 @@ def master_dark(filelist, master_bias_path, save_path):
         
     Returns
     -------
-    Array
+    master_dark: Array
         3D array containing the data of the created master dark frame
     '''
     # initializes a list for the normalized dark frames to be later processed
@@ -79,6 +79,11 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
         3D array containing the data of the master dark frame
     save_path: String
         Path to where the master flat file will be saved
+        
+    Returns
+    ----------
+    master_flat: Array
+        Returns the array to the master flat, which ahs been previously saved
     '''
     # initializes a list for the bias and dark subtracted frames
     dark_subtracted_normalized = []
@@ -157,7 +162,7 @@ def centroiding(image_path_science, image_path_ref, star_coords, background_coor
 
     Returns:
     --------
-    List
+    final_shifts: List
         List of the x and y values needed to align image with the reference
     '''
     # uses box helper function to create cutouts
@@ -214,7 +219,7 @@ def process_images_in_folder(base_folder_path, filter_names, master_bias_path, m
         
     Returns:
     ----------
-        None  
+    None  
     '''
     
     for filter_name in filter_names:
@@ -285,6 +290,7 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     '''
     Shifts a list of images using a fast fourier transform, and then stacks them together.
     This code also median combines them at the end.
+    
     Parameters:
     -----------
     list_image_paths: List
@@ -327,9 +333,10 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
     h.file_save(save_path, final_median_image, fits.getheader(list_image_paths[0]))
     return final_median_image
 
-def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
+def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val):
     '''
-    Shifts a list of images to align them, and then stacks them together.
+    Shifts a list of images to align them, there is no stacking or median combine.
+    This is only used for the final master shift, as there is no stacking. 
 
     Parameters:
     ----------
@@ -341,29 +348,30 @@ def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
         List of values to shift the y-coordinates of an image by
     pad_val: Float
         Value of how much padding you wish to add to each image
-    save_path: String
-        Path to the desired save location
 
     Returns:
     --------
-    Array
-        Data array for the final aligned and stacked image
+    None
     '''
+    # checks to see if this was not fucked from the start
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
 
-    sample_data = fits.getdata(list_image_paths[0])
     # Pads and shifts images
     num_images = len(list_image_paths)
     for i in range(num_images):
+        # gets the data for the image
         current_image_path = list_image_paths[i]
         image_data = fits.getdata(current_image_path)
+        # creates the new path name fromulaically
         base_name = os.path.basename(current_image_path)
         unique_save_path = os.path.join(os.path.dirname(current_image_path), f"aligned_{base_name}") 
-        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = -1) # ask about this bc if i do nan with no median combine it just return all nan
+        # pads the image
+        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = -1)
         # scipy_shift expects (Y_shift, X_shift)
         shifted_padded_image = scipy_shift(padded_image, (y_shift[i], x_shift[i]), cval=-1)
-        # shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
+        # shifted_padded_image[shifted_padded_image <= -0.99] = np.nan removed because DS9 can't show nans
+        # saves the shifted image and adds the needed header
         h.file_save(unique_save_path, shifted_padded_image, fits.getheader(current_image_path))
     return
