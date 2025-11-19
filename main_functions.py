@@ -416,7 +416,7 @@ def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
         image_data = fits.getdata(current_image_path)
         base_name = os.path.basename(current_image_path)
         unique_save_path = os.path.join(os.path.dirname(current_image_path), f"aligned_{base_name}") 
-        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = np.nan) 
+        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = -1) # ask about this bc if i do nan with no median combine it just return all nan
         # scipy_shift expects (Y_shift, X_shift)
         shifted_padded_image = scipy_shift(padded_image, (y_shift[i], x_shift[i]), cval=-1)
         # shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
