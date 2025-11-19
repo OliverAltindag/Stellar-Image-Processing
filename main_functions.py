@@ -346,7 +346,6 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
         print("Inputs are wrong womp womp")
         return
 
-    # Get reference properties
     ref_data = fits.getdata(ref_image_path)
     ref_h, ref_w = ref_data.shape
     ref_header = fits.getheader(ref_image_path)
@@ -354,23 +353,33 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
     for index, filename in enumerate(list_image_paths):
         target_data = fits.getdata(filename)
         t_h, t_w = target_data.shape
-        if (t_h != ref_h) or (t_w != ref_w):
-            pad_y = (ref_h - t_h)
-            pad_x = (ref_w - t_w)
-            py_before = pad_y // 2
-            py_after = pad_y - py_before
-            px_before = pad_x // 2
-            px_after = pad_x - px_before
-            target_data = np.pad(
-                target_data, 
-                ((py_before, py_after), (px_before, px_after)), 
-                mode='constant', 
-                constant_values=np.nan
-            )
-
+        if t_h < ref_h:
+            # Target is SHORTER -> Pad Top/Bottom
+            diff = ref_h - t_h
+            pad_top = diff // 2
+            pad_bottom = diff - pad_top
+            target_data = np.pad(target_data, ((pad_top, pad_bottom), (0, 0)), 
+                                 mode='constant', constant_values=np.nan)
+        elif t_h > ref_h:
+            diff = t_h - ref_h
+            start_crop = diff // 2
+            target_data = target_data[start_crop : start_crop + ref_h, :]
+        # Re-check shape (target_data might have changed in Step 1)
+        curr_h, curr_w = target_data.shape
+        if curr_w < ref_w:
+            # Target is NARROWER -> Pad Left/Right
+            diff = ref_w - curr_w
+            pad_left = diff // 2
+            pad_right = diff - pad_left
+            target_data = np.pad(target_data, ((0, 0), (pad_left, pad_right)), 
+                                 mode='constant', constant_values=np.nan)
+        elif curr_w > ref_w:
+            # Target is WIDER -> Crop Left/Right
+            diff = curr_w - ref_w
+            start_crop = diff // 2
+            target_data = target_data[:, start_crop : start_crop + ref_w]
         shift_y_int = int(y_shift[index])
         shift_x_int = int(x_shift[index])
-        # Apply roll
         shifted_image = np.roll(target_data, shift_y_int, axis=0)
         shifted_image = np.roll(shifted_image, shift_x_int, axis=1)
         h.file_save(save_path, shifted_image, ref_header)
