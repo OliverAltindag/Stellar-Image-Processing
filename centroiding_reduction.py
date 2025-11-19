@@ -151,12 +151,12 @@ def reduction(data_folder_path, science_images_folder):
     align_and_stack_folder(standard_folder_path, star_coords_std, bg_coords_std, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
-    ref_filter_name = 'blue' 
+    ref_filter_name = 'visual' 
     master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
 
     #shifts and stacks
-    star_coords_main = [1250, 1450, 3800, 4000]
-    bg_coords_main = [1230, 1280, 3750, 3800]
+    star_coords_main = [2200, 2265, 1145, 1195]
+    bg_coords_main = [1920, 1970, 1700, 1750]
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
@@ -173,5 +173,5 @@ def reduction(data_folder_path, science_images_folder):
     for i, stack_path in enumerate(files_to_align):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
-        mf.shifting_masters([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], aligned_save_path)
+        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val aligned_save_path)
     return
