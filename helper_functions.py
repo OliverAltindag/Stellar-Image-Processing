@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def file_save(save_path, data, header = None):
     '''
-    Saves data as a new fits file
+    Saves data as a new fits file, with default header set to none which is helpful when making master calibration frames. 
     
     Parameters:
     -----------
@@ -20,12 +20,12 @@ def file_save(save_path, data, header = None):
         Header the file will be saved with. Leave as None to save the file with no header.
         
     '''
-    fits.writeto(save_path, data, header, overwrite = True)
+    fits.writeto(save_path, data, header, overwrite = True) # sets overwrite to true, albeit the code must be run in one shot
     return
 
 def filelist_creator(base_path, subfolder_path):
     '''
-    Constructs a new file path and returns the list of files within it.
+    Constructs a new file path and returns the list of files within it. Essentially replaces our usage of glob.glob.
     
     Parameters:
     ----------
@@ -47,7 +47,7 @@ def filelist_creator(base_path, subfolder_path):
     
 def mediancombine(filelist):
     '''
-    Function that creates a median image stack of the input files.
+    Function that creates a median image stack of the input files. 
 
     Parameters
     ----------
@@ -89,9 +89,11 @@ def mediancombine(filelist):
     med_frame = np.median(fits_stack, axis = 2)
     return med_frame #returns the median stacked image
 
-def bias_subtract(filename, path_to_bias): # better to use filename here than data directly (faster)
+def bias_subtract(filename, path_to_bias): 
     '''
-    The function works to subracts the master biases from a single frame.
+    The function works to subracts the master biases from a single frame. 
+    Leverages later architecture and the notion that bias subtract is the first calculation step,
+    making filename a more efficient input.
 
     Parameters:
     ----------
