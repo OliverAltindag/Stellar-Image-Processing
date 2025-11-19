@@ -7,8 +7,8 @@ import glob
 import helper_functions as h
 import main_functions as mf
 
-# Very specific helper fucntions
-
+# Very specific helper functions, not main functions
+# here to keep the actual reduction() clean, and easy to debug
 def sort_and_align_files(science_folder_path):
     '''
     Sorts science images by filter and gathers the list of shifts needed to align them.
@@ -20,9 +20,9 @@ def sort_and_align_files(science_folder_path):
     
     Returns:
     --------
-    List
+    filter_files: List
         List of paths for images in each filter
-    List
+    all_shifts: List
         List containing the shifts needed to align the images for each filter
     '''
     #collects calibrated files
@@ -70,6 +70,10 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
         List containing the shifts needed to align the images for each filter
     pad_val: Float
         Value to pad the images by when shifting and stacking
+        
+    Returns:
+    -----------
+    None
 
     '''
     #shifts and stacks images in each filter
@@ -92,6 +96,10 @@ def align_and_stack_folder(folder_path, pad_val):
         Path to the folder with the files to be processed
     pad_val: Float
         Value to pad the images by when shifting and stacking
+        
+    Returns:
+    -----------
+    None
 
     '''
     filter_files, all_shifts = sort_and_align_files(folder_path)
