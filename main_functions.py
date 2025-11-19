@@ -342,39 +342,36 @@ def shifting_fft(list_image_paths, x_shift, y_shift, pad_val, save_path):
 def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_path):
     '''
     '''
-    # checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
 
+    # Get reference properties
     ref_data = fits.getdata(ref_image_path)
     ref_h, ref_w = ref_data.shape
+    ref_header = fits.getheader(ref_image_path)
 
     for index, filename in enumerate(list_image_paths):
         target_data = fits.getdata(filename)
-        target_h, target_w = target_data.shape
-        
-        center_y_diff = (ref_h // 2) - (target_h // 2)
-        center_x_diff = (ref_w // 2) - (target_w // 2)
-        
-        canvas = np.full((ref_h, ref_w), np.nan, dtype=np.float32)
-        
-        c_y1 = max(0, center_y_diff)
-        c_x1 = max(0, center_x_diff)
-        c_y2 = min(ref_h, center_y_diff + target_h)
-        c_x2 = min(ref_w, center_x_diff + target_w)
-        
-        t_y1 = max(0, -center_y_diff)
-        t_x1 = max(0, -center_x_diff)
-        t_y2 = min(target_h, t_y1 + (c_y2 - c_y1))
-        t_x2 = min(target_w, t_x1 + (c_x2 - c_x1))
-        
-        # Paste the valid data onto the canvas
-        canvas[c_y1:c_y2, c_x1:c_x2] = target_data[t_y1:t_y2, t_x1:t_x2]
-        
-        # Move the image to align the stars, filling the new empty space with NaNs
-        final_image = scipy_shift(canvas, shift=(y_shift[index], x_shift[index]), mode='constant', cval= -1)
-        final_image[final_image <= -0.99] = np.nan
-    
-        h.file_save(save_path, final_image, fits.getheader(ref_image_path))
-        return final_image
+        t_h, t_w = target_data.shape
+        if (t_h != ref_h) or (t_w != ref_w):
+            pad_y = (ref_h - t_h)
+            pad_x = (ref_w - t_w)
+            py_before = pad_y // 2
+            py_after = pad_y - py_before
+            px_before = pad_x // 2
+            px_after = pad_x - px_before
+            target_data = np.pad(
+                target_data, 
+                ((py_before, py_after), (px_before, px_after)), 
+                mode='constant', 
+                constant_values=np.nan
+            )
+
+        shift_y_int = int(y_shift[index])
+        shift_x_int = int(x_shift[index])
+        # Apply roll
+        shifted_image = np.roll(target_data, shift_y_int, axis=0)
+        shifted_image = np.roll(shifted_image, shift_x_int, axis=1)
+        h.file_save(save_path, shifted_image, ref_header)
+        return shifted_image
