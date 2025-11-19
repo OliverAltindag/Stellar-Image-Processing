@@ -18,7 +18,10 @@ def file_save(save_path, data, header = None):
         Data array to save to new location
     header: astropy Header [optional, default=None]
         Header the file will be saved with. Leave as None to save the file with no header.
-        
+
+    Returns:
+    -----------
+    None    
     '''
     fits.writeto(save_path, data, header, overwrite = True) # sets overwrite to true, albeit the code must be run in one shot
     return
@@ -34,7 +37,7 @@ def filelist_creator(base_path, subfolder_path):
     subfolder_path: String
         Path to the sub-directory
         
-    Resturns:
+    Returns:
     ---------
     List
         List of the paths of the files at the created location
