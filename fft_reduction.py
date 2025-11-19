@@ -149,27 +149,56 @@ def reduction(data_folder_path, science_images_folder):
     align_and_stack_folder(standard_folder_path, pad_val)
 
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
-    ref_filter_name = 'visual' 
-    master_ref_path = os.path.join(science_folder_path, f"master_stack_{ref_filter_name.lower()}.fit")
+    min_height = float('inf')
+    min_width = float('inf')
+    for stack_path in master_stack_paths:
+        data = fits.getdata(stack_path)
+        height, width = data.shape
+        min_height = min(min_height, height)
+        min_width = min(min_width, width)
+    print(f"Adaptive trimming to: {min_width} x {min_height}") # bc it wont work if not and ive done a ton of testing
+    for stack_path in master_stack_paths:
+        data = fits.getdata(stack_path)
+        header = fits.getheader(stack_path)
+        current_height, current_width = data.shape
+        start_y = (current_height - min_height) // 2
+        end_y = start_y + min_height
+        start_x = (current_width - min_width) // 2
+        end_x = start_x + min_width
+        cropped_data = data[start_y:end_y, start_x:end_x]
+        header['NAXIS1'] = cropped_data.shape[1]  # Update width
+        header['NAXIS2'] = cropped_data.shape[0]  # Update height
+        h.file_save(stack_path, cropped_data, header)
+    master_stack_paths.sort()  # Sort to ensure consistent reference
+    master_ref_path = master_stack_paths[0]  # SAME REFERENCE FOR ALL ALIGNMENTS
 
-    #shifts and stacks
-    star_coords_main = [2600, 2690, 1500, 1550] # evil things
-    bg_coords_main = [1920, 1970, 1700, 1750]
+    star_coords_main = [2600, 2690, 1500, 1550]  
+    bg_coords_main = [1920, 1970, 1700, 1750]    
+    
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
+
     for stack_path in master_stack_paths:
         files_to_align.append(stack_path)
         if stack_path == master_ref_path:
+            # Reference image gets zero shift (SAME REFERENCE STAR FOR ALL)
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
+            # All other images aligned to SAME REFERENCE STAR
             shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
-            master_shifts_x.append(shifts[0])
-            master_shifts_y.append(shifts[1])
-            
+            if shifts is not None:
+                master_shifts_x.append(shifts[0])
+                master_shifts_y.append(shifts[1])
+            else:
+                print(f"Centroiding failed for {stack_path}, using zero shift")
+                master_shifts_x.append(0.0)
+                master_shifts_y.append(0.0)
+    
+    # Apply shifts to align all images to SAME REFERENCE
     for i, stack_path in enumerate(files_to_align):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
-        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], aligned_save_path)
+        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], master_ref_path, aligned_save_path)
     return
