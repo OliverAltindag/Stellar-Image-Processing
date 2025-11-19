@@ -172,9 +172,9 @@ def reduction(data_folder_path, science_images_folder):
     master_stack_paths.sort()  # Sort to ensure consistent reference
     master_ref_path = master_stack_paths[0]  # SAME REFERENCE FOR ALL ALIGNMENTS
 
+    pad_val = 150
     star_coords_main = [2600, 2690, 1500, 1550]  
     bg_coords_main = [1920, 1970, 1700, 1750]    
-    
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
@@ -200,5 +200,5 @@ def reduction(data_folder_path, science_images_folder):
     for i, stack_path in enumerate(files_to_align):
         base_name = os.path.basename(stack_path)
         aligned_save_path = os.path.join(science_folder_path, f"aligned_{base_name}")
-        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], master_ref_path, aligned_save_path)
+        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val, aligned_save_path)
     return
