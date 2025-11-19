@@ -184,7 +184,7 @@ def reduction(data_folder_path, science_images_folder):
     master_ref_path = trimmed_stack_paths[0]  
 
     pad_val = 150
-    star_coords_main = [2755, 2880, 1260, 1310]  
+    star_coords_main = [2755, 2880, 1260, 1310]  #FINALLY WORKED DO NOT CHNAGE THESE PLEASE
     bg_coords_main = [1920, 1970, 1700, 1750]    
     master_shifts_x = []
     master_shifts_y = []
