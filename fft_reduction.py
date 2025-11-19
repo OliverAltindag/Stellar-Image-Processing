@@ -25,16 +25,17 @@ def sort_and_align_files(science_folder_path):
     all_shifts: List
         List containing the shifts needed to align the images for each filter
     '''
-    #collects calibrated files
+    # collects calibrated files
     search_pattern = os.path.join(science_folder_path, "**", "fdb_*.fit")
     fdb_science_files = glob.glob(search_pattern, recursive=True)
 
+    # gets the possible filter types, so files can be added in later
     filter_files = {
         'Visual': [],
         'Blue': [],
         'Red': []
     }
-    #sorts image paths by filter
+    # sorts image paths by filter, and adds them to the lists above
     for path in fdb_science_files:
         filter_name = fits.getheader(path)["FILTER"].strip()
         if filter_name in filter_files:
@@ -45,14 +46,16 @@ def sort_and_align_files(science_folder_path):
         current_shift_list = []
         # Uses the first file as the reference
         image_path_ref = file_list[0] 
-        #gets shifts
+        # gets shifts using main functions
         for image_path in file_list:
             x_y_shifts = mf.cross_correlation_shifts(image_path, image_path_ref)
             if x_y_shifts is None:
-                print(f"User aborted alignment for filter: {filter_name}. Check star/background boxes.")
+                print(f"User aborted alignment for filter: {filter_name}. shame :(")
                 current_shift_list = [] # Clear any shifts
                 break
-            current_shift_list.append(x_y_shifts)    
+            # will append the shifts list to keep track of historical ones
+            current_shift_list.append(x_y_shifts) 
+        # puts it into the sorted one
         all_shifts[filter_name] = current_shift_list
     return filter_files, all_shifts
 
