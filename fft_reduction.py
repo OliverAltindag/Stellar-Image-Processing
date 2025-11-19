@@ -187,7 +187,6 @@ def reduction(data_folder_path, science_images_folder):
         min_height = min(min_height, height)
         min_width = min(min_width, width)
     print(f"Adaptive trimming to: {min_width} x {min_height}") # bc it wont work if not and ive done a ton of testing
-    
     # trimmed versions, this now makes the alignment step more accurate with the padding
     trimmed_stack_paths = []
     for stack_path in master_stack_paths:
@@ -209,36 +208,40 @@ def reduction(data_folder_path, science_images_folder):
         # saves the data to be used in the future
         h.file_save(trimmed_path, cropped_data, header)
         trimmed_stack_paths.append(trimmed_path)
-    
     # use the timrmed ones
     trimmed_stack_paths.sort()  # Sort to ensure consistent reference
     master_ref_path = trimmed_stack_paths[0]  
-
     pad_val = 150
-    star_coords_main = [2755, 2880, 1260, 1310]  #FINALLY WORKED DO NOT CHNAGE THESE PLEASE
-    bg_coords_main = [1920, 1970, 1700, 1750]    
+    # notice this is 100 pixels wide and relatively centered
+    star_coords_main = [2755, 2880, 1260, 1310]  # FINALLY WORKED DO NOT CHNAGE THESE PLEASE
+    bg_coords_main = [1920, 1970, 1700, 1750] # finding these coordinates was the greatest triumph in this century 
+    # initializes the empty list for the shifts
+    # this will use centroiding
     master_shifts_x = []
     master_shifts_y = []
     files_to_align = []
-
     for stack_path in trimmed_stack_paths:  
         files_to_align.append(stack_path)
         if stack_path == master_ref_path:
-            # Reference image gets zero shift (SAME REFERENCE STAR FOR ALL)
+            # Reference image gets zero shift (SAME REFERENCE STAR FOR ALL), was an issue of this failing
+            # hence has been fixed, no worries
             master_shifts_x.append(0.0)
             master_shifts_y.append(0.0)
         else:
-            # All other images aligned
+            # All other images aligned here, using the main functions
             shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
             if shifts is not None:
                 master_shifts_x.append(shifts[0])
                 master_shifts_y.append(shifts[1])
             else:
+                # insallah this never happens
+                # our data succesfully went through this so is a file architecture issue if not
                 print(f"Centroiding failed for {stack_path}, using zero shift")
                 master_shifts_x.append(0.0)
                 master_shifts_y.append(0.0)
-    
-    # Apply shifts to align all images
+    # apply shifts to align all images using our main functions
+    # this one merely shifts, no median stacking 
+    # sooooo important
     for i, stack_path in enumerate(files_to_align):
         mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
     return
