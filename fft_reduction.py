@@ -132,22 +132,24 @@ def reduction(data_folder_path, science_images_folder):
     -----------
     None
     '''
+    # using file architecture, we can merely find the standard star folder
     standard_images_subfolder = "standard"
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
-
+    # gets the needed file data and the file list
+    # could use filelist_creator, but wanted the added .fit portion
     bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fit'))
     dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fit'))
     visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fit'))
     blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fit'))
     red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fit'))
-
+    # creates the master bias
     master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fit')
     mf.master_bias(bias_files, master_bias_path)
-    
+    # creates the master dark
     master_dark_path = os.path.join(data_folder_path, 'calibration/darks/master_dark.fit')
     mf.master_dark(dark_files, master_bias_path, master_dark_path)
-
+    # creates the master flat for each filter in a NEW folder called masters
     master_flats_save_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
     os.makedirs(master_flats_save_folder, exist_ok=True) 
     flat_file_groups = {
@@ -157,21 +159,26 @@ def reduction(data_folder_path, science_images_folder):
     }
     for filter_name, file_list in flat_file_groups.items():
         save_path = os.path.join(master_flats_save_folder, f'master_flat_{filter_name}.fit')
+        # actually calls the fucntion here
         mf.master_flat(file_list, master_bias_path, master_dark_path, save_path) 
-    
+    # sets the path to the master flats folder to be used later and gets their names
     master_flats_folder = os.path.join(data_folder_path, 'calibration/flats/masters')
     filter_names = flat_file_groups.keys()
-
+    # does image reduction on the standard star and the target
     mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
-
+    # created the master stack images in each filter
+    # NOTE: pad_val is passed to these functions, but it not used
+    # this will be removed in later versions of the code, but is harmless
     pad_val = 150 
     align_and_stack_folder(science_folder_path, pad_val)
     align_and_stack_folder(standard_folder_path, pad_val)
-    
-    
-    # super messy but will clean it all up once it works fully
+    # gets the path to the master stacked images we just created
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "master_stack_*.fit"))
+    # trims the images, so they are all the same size again
+    # the fft correlating process trimmed them all differently so want them identical again
+    # this will help when padding and create better alignment
+    # a critical step for RGB imaging
     min_height = float('inf')
     min_width = float('inf')
     for stack_path in master_stack_paths:
