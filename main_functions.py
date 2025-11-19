@@ -354,7 +354,6 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
         target_data = fits.getdata(filename)
         t_h, t_w = target_data.shape
         if t_h < ref_h:
-            # Target is SHORTER -> Pad Top/Bottom
             diff = ref_h - t_h
             pad_top = diff // 2
             pad_bottom = diff - pad_top
