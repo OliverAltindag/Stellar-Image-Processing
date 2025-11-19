@@ -372,7 +372,6 @@ def shifting_masters(list_image_paths, x_shift, y_shift, ref_image_path, save_pa
             target_data = np.pad(target_data, ((0, 0), (pad_left, pad_right)), 
                                  mode='constant', constant_values=np.nan)
         elif curr_w > ref_w:
-            # Target is WIDER -> Crop Left/Right
             diff = curr_w - ref_w
             start_crop = diff // 2
             target_data = target_data[:, start_crop : start_crop + ref_w]
