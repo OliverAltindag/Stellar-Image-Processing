@@ -10,7 +10,6 @@ import helper_functions as h
 
 # these are all of the main function which will be used:
 
-# this makes the master_bias frame
 def master_bias(filelist, save_path):
     '''
     Creates the master bias frame.
@@ -29,6 +28,7 @@ def master_bias(filelist, save_path):
     '''
     #creates median stacked frame using helper functions
     master_bias =  h.mediancombine(filelist) 
+    # calls our helper function without defining a header
     h.file_save(save_path, master_bias)
     return master_bias
 
@@ -51,12 +51,17 @@ def master_dark(filelist, master_bias_path, save_path):
     Array
         3D array containing the data of the created master dark frame
     '''
+    # initializes a list for the normalized dark frames to be later processed
     normalized_darks = []
     for file_path in filelist:
+        # bias subtract
         bias_subtracted_image = h.bias_subtract(file_path, master_bias_path)
+        # normalizes
         normalized_sub_image = h.normalization(bias_subtracted_image, file_path)
         normalized_darks.append(normalized_sub_image)
+    # takes the median combine value
     master_dark = h.mediancombine(normalized_darks)
+    # saves the file without a header
     h.file_save(save_path, master_dark) 
     return master_dark
 
@@ -75,14 +80,22 @@ def master_flat(flat_files, master_bias_path, master_dark_path, save_path):
     save_path: String
         Path to where the master flat file will be saved
     '''
+    # initializes a list for the bias and dark subtracted frames
     dark_subtracted_normalized = []
     for flat_file_path in flat_files:
+        # bias subtract
         flat_bias_sub = h.bias_subtract(flat_file_path, master_bias_path)
+        # normalizes
         normalized_flat = h.normalization(flat_bias_sub, flat_file_path)
+        # dark subtract with 1 for the scalar
         norm_flat_dark_subtracted = h.dark_subtract(normalized_flat, master_dark_path, 1)
         dark_subtracted_normalized.append(norm_flat_dark_subtracted)
+    # takes the median combine of the newly made list
     median_combine_image = h.mediancombine(dark_subtracted_normalized)
     master_flat = median_combine_image / np.median(median_combine_image)
+    # saves the file without a header
+    # the frame has no exptime and adding no information is better for later information 
+    # than wrong information
     h.file_save(save_path, master_flat) 
     return master_flat
 
