@@ -311,3 +311,27 @@ def star_finder(box, xmin, ymin):
     x_coord = xmin + (x_sum_num / sum_I)
     y_coord = ymin + (y_sum_num / sum_I)
     return x_coord, y_coord
+
+def crop_center(img, target_rows, target_cols):
+    '''
+    Creates a window into the image which matches the size of the smallest dimensions between them
+    centered in the image.
+    
+    Parameters:
+    -----------
+    img: Array
+        Data of the image in array form
+    target_rows: Float
+        The number of rows the cutout will create
+    target_cols: Float
+        the number of rows the cutout will create
+        
+    Returns:
+    --------
+    img: Array
+        The window of the image, not the entire image
+    '''
+    current_rows, current_cols = img.shape
+    start_row = (current_rows - target_rows) // 2
+    start_col = (current_cols - target_cols) // 2
+    return img[start_row : start_row + target_rows, start_col : start_col + target_cols]
