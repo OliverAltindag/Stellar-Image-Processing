@@ -404,25 +404,21 @@ def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
     Array
         Data array for the final aligned and stacked image
     '''
-    #checks if you've got the right matching number of shifts or images
     if len(list_image_paths) != len(x_shift):
         print("Inputs are wrong womp womp")
         return
 
-    # determines the final padded shape
     sample_data = fits.getdata(list_image_paths[0])
-    padded_shape = np.pad(sample_data, pad_val, 'constant').shape
-
-    #Pads and shifts images
+    # Pads and shifts images
     num_images = len(list_image_paths)
     for i in range(num_images):
         current_image_path = list_image_paths[i]
         image_data = fits.getdata(current_image_path)
-        image_data[np.isinf(image_data)] = 0.0
-        image_data[np.isnan(image_data)] = 0.0
-        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = -1)
+        base_name = os.path.basename(current_image_path)
+        unique_save_path = os.path.join(os.path.dirname(current_image_path), f"aligned_{base_name}") 
+        padded_image = np.pad(image_data, pad_val, 'constant', constant_values = np.nan) 
+        # scipy_shift expects (Y_shift, X_shift)
         shifted_padded_image = scipy_shift(padded_image, (y_shift[i], x_shift[i]), cval=-1)
         shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
-        h.file_save(save_path, shifted_padded_image, fits.getheader(list_image_paths[0]))
-    return final_median_image
+        h.file_save(unique_save_path, shifted_padded_image, fits.getheader(current_image_path))
 
