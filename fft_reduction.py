@@ -173,7 +173,7 @@ def reduction(data_folder_path, science_images_folder):
     master_ref_path = master_stack_paths[0]  # SAME REFERENCE FOR ALL ALIGNMENTS
 
     pad_val = 150
-    star_coords_main = [2600, 2690, 1500, 1550]  
+    star_coords_main = [1270, 1320, 2750, 2890]  
     bg_coords_main = [1920, 1970, 1700, 1750]    
     master_shifts_x = []
     master_shifts_y = []
