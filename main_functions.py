@@ -419,6 +419,6 @@ def shifting_master_cen(list_image_paths, x_shift, y_shift, pad_val, save_path):
         padded_image = np.pad(image_data, pad_val, 'constant', constant_values = np.nan) 
         # scipy_shift expects (Y_shift, X_shift)
         shifted_padded_image = scipy_shift(padded_image, (y_shift[i], x_shift[i]), cval=-1)
-        shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
+        # shifted_padded_image[shifted_padded_image <= -0.99] = np.nan
         h.file_save(unique_save_path, shifted_padded_image, fits.getheader(current_image_path))
     return
