@@ -55,7 +55,7 @@ def sort_and_align_files(science_folder_path):
                 break
             # will append the shifts list to keep track of historical ones
             current_shift_list.append(x_y_shifts) 
-        # puts it into the sorted one
+        # puts it into a sorted dictionary
         all_shifts[filter_name] = current_shift_list
     return filter_files, all_shifts
 
@@ -81,11 +81,14 @@ def stack_all_filters(folder_path, filter_files, all_shifts, pad_val):
     '''
     #shifts and stacks images in each filter
     for filter_name in filter_files.keys():
+        # gets the filter and the corresponding shifts
         file_list = filter_files.get(filter_name, [])
         shifts_list = all_shifts.get(filter_name, [])
-        save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fit')
+        # makes the save path
+        save_path = os.path.join(folder_path, f'master_stack_{filter_name.lower()}.fit') # critical this is lower case for code logic
         x_shifts = [s[0] for s in shifts_list]
         y_shifts = [s[1] for s in shifts_list]
+        # performs the shifts using main function
         mf.shifting_fft(file_list, x_shifts, y_shifts, pad_val, save_path)
     return
     
@@ -105,12 +108,15 @@ def align_and_stack_folder(folder_path, pad_val):
     None
 
     '''
+    # calls the fucntions above to shift and stack the images
     filter_files, all_shifts = sort_and_align_files(folder_path)
     stack_all_filters(folder_path, filter_files, all_shifts, pad_val)
     return
 
-# The actual image reduction and stacking is done
 
+
+# The actual image reduction and stacking is done in this function
+# for all of the scientific data
 def reduction(data_folder_path, science_images_folder):
     '''
     Reduces/processes all science images in a single function.
@@ -121,6 +127,10 @@ def reduction(data_folder_path, science_images_folder):
         Path to folder containing the calibration frames
     science_images_folder: String
         Path to the folder containing the science images to reduce
+
+    Returns:
+    -----------
+    None
     '''
     standard_images_subfolder = "standard"
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
