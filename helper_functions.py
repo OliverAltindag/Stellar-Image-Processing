@@ -229,7 +229,8 @@ def box_maker(image_path, star_coords, background_coords):
 
 def sigma_finder(box):
     '''
-    Finds the three sigma cutoff value to use when filtering data.
+    Finds the three sigma cutoff value to use when filtering data. 
+    Important in star isolation.
     
     Parameters:
     ----------
@@ -246,7 +247,7 @@ def sigma_finder(box):
         Standard deviation of the values in the background patch
         
     '''
-    # gets the cutoff value
+    # gets the cutoff values using statistical values
     avg_background = np.mean(box)
     std_background = np.std(box)
     three_sigma_cutoff = 3 * std_background + avg_background
@@ -255,6 +256,7 @@ def sigma_finder(box):
 def star_isolator(box, cutoff, avg_background):
     '''
     Isolates a star within an image by setting any value less than the cutoff to NaN, which removes the background data.
+    Important in centroiding. 
 
     Parameters:
     -----------
@@ -270,9 +272,10 @@ def star_isolator(box, cutoff, avg_background):
     Array
         Array of image data after filtering out the background
     '''
-    #sets any value less than the cutoff to NaN
+    # sets any value less than the cutoff to NaN
     star = box <= cutoff
     box -= avg_background
+    # removes the lower basis
     box[star] = np.nan
     return box
 
@@ -296,15 +299,15 @@ def star_finder(box, xmin, ymin):
     Float
         The y-coordinate of the centroid found in the image
     '''
-    #get image shape
+    # get image shape
     num_rows, num_cols = box.shape
     y_indices, x_indices = np.indices((num_rows, num_cols))
-    #calculates sum of star pixel values
+    # calculates sum of star pixel values
     sum_I = np.nansum(box)
-    #weighted position sums
+    # weighted position sums
     x_sum_num = np.nansum(x_indices * box)
     y_sum_num = np.nansum(y_indices * box)
-    #finds coordinates of centroid
+    # finds coordinates of centroid
     x_coord = xmin + (x_sum_num / sum_I)
     y_coord = ymin + (y_sum_num / sum_I)
     return x_coord, y_coord
