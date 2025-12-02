@@ -244,4 +244,43 @@ def reduction(data_folder_path, science_images_folder):
     # sooooo important
     for i, stack_path in enumerate(files_to_align):
         mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
+
+    # aligns the standard star images
+    # basically does everything above again witout trimming
+    master_stack_paths = glob.glob(os.path.join(standard_folder_path, "master_stack_*.fit"))
+    master_stack_paths.sort()
+    master_ref_path = master_stack_paths[0]
+    pad_val = 150
+    star_coords_main = [1625, 1715, 1190, 1250]  # on the std star for better alignment there in particular
+    bg_coords_main = [1475, 1525, 1575, 1625]  
+    # initializes the empty list for the shifts
+    # this will use centroiding
+    master_shifts_x = []
+    master_shifts_y = []
+    files_to_align = []
+    for stack_path in master_stack_paths:  
+        files_to_align.append(stack_path)
+        if stack_path == master_ref_path:
+            # Reference image gets zero shift (SAME REFERENCE STAR FOR ALL), was an issue of this failing
+            # hence has been fixed, no worries
+            master_shifts_x.append(0.0)
+            master_shifts_y.append(0.0)
+        else:
+            # All other images aligned here, using the main functions
+            shifts = mf.centroiding(stack_path, master_ref_path, star_coords_main, bg_coords_main)
+            if shifts is not None:
+                master_shifts_x.append(shifts[0])
+                master_shifts_y.append(shifts[1])
+            else:
+                # insallah this never happens
+                # our data succesfully went through this so is a file architecture issue if not
+                print(f"Centroiding failed for {stack_path}, using zero shift")
+                master_shifts_x.append(0.0)
+                master_shifts_y.append(0.0)
+    # apply shifts to align all images using our main functions
+    # this one merely shifts, no median stacking 
+    # sooooo important
+    for i, stack_path in enumerate(files_to_align):
+        mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
+    
     return
