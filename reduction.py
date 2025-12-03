@@ -251,7 +251,7 @@ def reduction(data_folder_path, science_images_folder):
     master_stack_paths.sort()
     master_ref_path = master_stack_paths[0]
     pad_val = 150
-    star_coords_main = [1625, 1715, 1190, 1250]  # on the std star for better alignment there in particular
+    star_coords_main = [2690, 2765, 1675, 1730]  # on the std star for better alignment there in particular
     bg_coords_main = [1475, 1525, 1575, 1625]  
     # initializes the empty list for the shifts
     # this will use centroiding
