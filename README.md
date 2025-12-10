@@ -58,5 +58,5 @@ pip install -r requirements.txt
 python run.py
 ```
 
-For graphin and photometric analysis, I recommend donwloading the Jupyter notebook and editing the needed steps. 
+For graphing and photometric analysis, I recommend donwloading the Jupyter notebook in the repo and editing the needed steps. 
 Given the emphasis of data visualization the analysis was not done in a .py script.
