@@ -138,11 +138,11 @@ def reduction(data_folder_path, science_images_folder):
     science_folder_path = os.path.join(data_folder_path, science_images_folder)
     # gets the needed file data and the file list
     # could use filelist_creator, but wanted the added .fit portion
-    bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', '*.fit'))
-    dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', '*.fit'))
-    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', '*.fit'))
-    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', '*.fit'))
-    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', '*.fit'))
+    bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', 'jno*.fit'))
+    dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', 'jno*.fit'))
+    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', 'jno*.fit'))
+    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', 'jno*.fit'))
+    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', 'jno*.fit'))
     # creates the master bias
     master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fit')
     mf.master_bias(bias_files, master_bias_path)
@@ -245,9 +245,6 @@ def reduction(data_folder_path, science_images_folder):
     for i, stack_path in enumerate(files_to_align):
         mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
 
-
-
-
     # aligns the standard star images
     # basically does everything above again witout trimming
     master_stack_paths = glob.glob(os.path.join(science_folder_path, "aligned_trimmed_master_stack_*.fit"))
@@ -286,10 +283,6 @@ def reduction(data_folder_path, science_images_folder):
     for i, stack_path in enumerate(files_to_align):
         mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
 
-
-
-    
-
     # aligns the standard star images
     # basically does everything above again witout trimming
     master_stack_paths = glob.glob(os.path.join(standard_folder_path, "master_stack_*.fit"))
@@ -327,8 +320,6 @@ def reduction(data_folder_path, science_images_folder):
     # sooooo important
     for i, stack_path in enumerate(files_to_align):
         mf.shifting_master_cen([stack_path], [master_shifts_x[i]], [master_shifts_y[i]], pad_val)
-
-
 
     # aligns the standard star images
     # basically does everything above again witout trimming
