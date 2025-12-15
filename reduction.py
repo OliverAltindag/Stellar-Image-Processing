@@ -168,8 +168,6 @@ def reduction(data_folder_path, science_images_folder):
     mf.process_images_in_folder(science_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     mf.process_images_in_folder(standard_folder_path, filter_names, master_bias_path, master_dark_path, master_flats_folder)
     # created the master stack images in each filter
-    # NOTE: pad_val is passed to these functions, but it not used
-    # this will be removed in later versions of the code, but is harmless
     pad_val = 150 
     align_and_stack_folder(science_folder_path, pad_val)
     align_and_stack_folder(standard_folder_path, pad_val)
