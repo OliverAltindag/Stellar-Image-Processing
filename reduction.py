@@ -171,9 +171,9 @@ def reduction(data_folder_path, science_images_folder):
     # could use filelist_creator, but wanted the added .fit portion
     bias_files = glob.glob(os.path.join(data_folder_path, 'calibration/biasframes', 'jno*.fit'))
     dark_files = glob.glob(os.path.join(data_folder_path, 'calibration/darks', 'jno*.fit'))
-    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', 'jno*.fit'))
-    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', 'jno*.fit'))
-    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', 'jno*.fit'))
+    visual_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/visual', 'flat*.fit'))
+    blue_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/blue', 'flat*.fit'))
+    red_flat_files = glob.glob(os.path.join(data_folder_path, 'calibration/flats/red', 'flat*.fit'))
     # creates the master bias
     master_bias_path = os.path.join(data_folder_path, 'calibration/biasframes/master_bias.fit')
     mf.master_bias(bias_files, master_bias_path)
