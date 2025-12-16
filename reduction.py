@@ -117,6 +117,7 @@ def align_and_stack_folder(folder_path, pad_val):
 
 # The actual image reduction and stacking is done in this function
 # for all of the scientific data
+# this auto deletes all old filtered files to make re running easy
 def reduction(data_folder_path, science_images_folder):
     '''
     Reduces/processes all science images in a single function.
@@ -132,6 +133,34 @@ def reduction(data_folder_path, science_images_folder):
     -----------
     None
     '''
+    # gets the folders in the architecture so files can be deleted
+    base_path = "datafolder"
+    science_folder_path = os.path.join(base_path, "target")
+    standard_folder_path = os.path.join(base_path, "standard")
+    calibration_folder_path = os.path.join(base_path, "calibration")
+    
+    print("Cleaning up old files recursively (preserving initial files)...")
+    # iterate through the main categories
+    for root_folder in [science_folder_path, standard_folder_path, calibration_folder_path]:    
+        # Check if the main folder exists first
+        if os.path.exists(root_folder):
+            # os.walk() recursively goes into subfolders
+            # or it should at least
+            # worked when I did it
+            for current_dir, subdirs, files in os.walk(root_folder):
+                for filename in files:
+                    # for us this is jno but will chnage depending on your data labelling
+                    # this assumes it was all imaging was labeled with the same tag
+                    if not filename.startswith("jno"):
+                        file_path = os.path.join(current_dir, filename)
+                        try:
+                            # for cleanliness didnt show the files being deleted but add
+                            # if your heart desires
+                            os.remove(file_path)
+                        except OSError as e:
+                            print(f"Error deleting {file_path}: {e}")
+                            
+    # now that its just raw data it can be processed/reprocessed    
     # using file architecture, we can merely find the standard star folder
     standard_images_subfolder = "standard"
     standard_folder_path = os.path.join(data_folder_path, standard_images_subfolder)
