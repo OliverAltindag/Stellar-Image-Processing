@@ -134,7 +134,9 @@ def reduction(data_folder_path, science_images_folder):
     None
     '''
     # gets the folders in the architecture so files can be deleted
-    base_path = "datafolder"
+    base_path = data_folder_path
+    # did it like this for convenience but it is already defined in the read in line so 
+    # no difference
     science_folder_path = os.path.join(base_path, "target")
     standard_folder_path = os.path.join(base_path, "standard")
     calibration_folder_path = os.path.join(base_path, "calibration")
