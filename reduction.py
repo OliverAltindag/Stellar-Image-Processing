@@ -153,7 +153,7 @@ def reduction(data_folder_path, science_images_folder):
                 for filename in files:
                     # for us this is jno but will chnage depending on your data labelling
                     # this assumes it was all imaging was labeled with the same tag
-                    if not filename.startswith("jno"):
+                    if not filename.startswith("jno", "flat"):
                         file_path = os.path.join(current_dir, filename)
                         try:
                             # for cleanliness didnt show the files being deleted but add
